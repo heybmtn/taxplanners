@@ -28,14 +28,21 @@ Node 22.18+ (TypeScript scripts and tests run with Node's built-in type strippin
 
 ## Deploy
 
-`.github/workflows/deploy.yml` runs `check`, `build` and `wrangler deploy` on every push to `main` and daily at 05:17 UTC (so expired Verified listings drop to Basic). It needs repository secrets `CLOUDFLARE_API_TOKEN` (Workers edit permission) and `CLOUDFLARE_ACCOUNT_ID`, and a repository variable `TURNSTILE_SITE_KEY`. Alternatively connect the repo in Workers Builds with build command `npm run build` and deploy command `npx wrangler deploy`, plus a daily deploy hook.
+Deploys run on Cloudflare Workers Builds, connected to this repo in the dashboard (Workers & Pages → Create → Import a repository):
+
+- Production branch `main`, build command `npm run build`, deploy command `npx wrangler deploy`.
+- Build variable `PUBLIC_TURNSTILE_SITE_KEY` (the Turnstile site key). Node's version comes from `.node-version`.
+- Every push to `main` builds and deploys.
+- **Daily rebuild:** create a deploy hook (Worker → Settings → Builds → Deploy Hooks) and save its URL as the secret `DEPLOY_HOOK_URL` (Settings → Variables & Secrets). The Worker's cron (`triggers.crons` in `wrangler.jsonc`, 05:17 UTC) calls it so expired Verified listings drop to Basic.
+
+`.github/workflows/ci.yml` only runs `npm run check` and `npm run build` on pushes and pull requests; it needs no secrets.
 
 One-off manual deploy: `npx wrangler login && npm run deploy`.
 
 Cloudflare dashboard steps:
 1. **Custom domain:** Workers & Pages → taxplanners → Settings → Domains & Routes → add `taxplanners.com` (and `www` redirect).
 2. **Email Routing:** enable on the zone, add and verify the destination address set in `wrangler.jsonc` (`send_email.destination_address`, same as `submissionsEmail`). The sender (`senderEmail`) must be on the zone.
-3. **Turnstile:** create a widget for the domain; put the site key in `site.config.ts` (`turnstileSiteKey`) or the `TURNSTILE_SITE_KEY` variable, and `npx wrangler secret put TURNSTILE_SECRET`. Without the secret, every submission fails closed to the error page.
+3. **Turnstile:** create a widget for the domain; put the site key in `site.config.ts` (`turnstileSiteKey`) or the `PUBLIC_TURNSTILE_SITE_KEY` build variable, and add the secret `TURNSTILE_SECRET` (Settings → Variables & Secrets). Without the secret, every submission fails closed to the error page.
 4. **Payment link:** set `verifiedPaymentLink` (e.g. a Stripe Payment Link, success URL `https://taxplanners.com/add-your-business/thanks-verified/`) and, for Stripe, `paymentReferenceParam: 'client_reference_id'`.
 5. **AI crawlers:** in AI Crawl Control, make sure the bots allowed in `robots.txt` are not blocked. Optionally enable Markdown for Agents.
 

@@ -1,4 +1,5 @@
-// Handles only /add-your-business/ (form GET prefill and POST) and the Verified thanks page.
+// Handles only /add-your-business/ (form GET prefill and POST) and the Verified thanks page,
+// plus a daily cron that calls the Workers Builds deploy hook so expired Verified listings drop to Basic.
 // Every other request is served straight from static assets (see run_worker_first in wrangler.jsonc).
 import { EmailMessage } from 'cloudflare:email';
 import site from '../site.config.ts';
@@ -9,6 +10,8 @@ interface Env {
   ASSETS: Fetcher;
   EMAIL: SendEmail;
   TURNSTILE_SECRET?: string;
+  /** Workers Builds deploy hook URL (secret). Without it the daily rebuild is skipped. */
+  DEPLOY_HOOK_URL?: string;
 }
 
 const redirect = (location: string, url: URL) => new Response(null, { status: 303, headers: { Location: new URL(location, url).toString(), 'Cache-Control': 'no-store' } });
@@ -97,5 +100,17 @@ export default {
     if (url.pathname === paths.thanksVerified) return thanksVerified(req, env, url);
     if (url.pathname === paths.form) return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD, POST' } });
     return env.ASSETS.fetch(req);
+  },
+
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    if (!env.DEPLOY_HOOK_URL) {
+      console.warn('DEPLOY_HOOK_URL is not set; skipping the daily rebuild');
+      return;
+    }
+    ctx.waitUntil(
+      fetch(env.DEPLOY_HOOK_URL, { method: 'POST' }).then((r) => {
+        if (!r.ok) console.error(`Deploy hook returned ${r.status}`);
+      }),
+    );
   },
 } satisfies ExportedHandler<Env>;

@@ -13,6 +13,8 @@
   },
   // Email Routing: the destination must be a verified address in the Cloudflare dashboard.
   "send_email": [{ "name": "EMAIL", "destination_address": "hello@taxplanners.com" }],
+  // Daily rebuild via the Workers Builds deploy hook (secret DEPLOY_HOOK_URL), so expired Verified listings drop to Basic.
+  "triggers": { "crons": ["17 5 * * *"] },
   "observability": { "enabled": true }
-  // Secret: npx wrangler secret put TURNSTILE_SECRET
+  // Secrets: TURNSTILE_SECRET, DEPLOY_HOOK_URL (dashboard: Settings > Variables & Secrets)
 }
