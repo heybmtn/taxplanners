@@ -2,7 +2,7 @@
 // 1. Tier wording: every "verif…" word in visible text is the tier name "Verified" (or "verification"/"verify" for the process);
 //    business JSON-LD never mentions it.
 // 2. An expired Verified listing renders as Basic (checked on the demo listing when demos are built).
-// 3. Data files and markdown twins are never linked visibly; the for-sale banner is on the home page only.
+// 3. Data files and markdown twins are never linked visibly; no page carries a for-sale banner.
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -19,16 +19,14 @@ for (const f of files.filter((f) => /\.(html|md|txt)$/.test(f))) {
     text = src.replace(/<(script|style)[\s\S]*?<\/\1>/g, ' ').replace(/<[^>]+>/g, ' ');
     const body = src.split('<body')[1] ?? '';
     for (const m of body.matchAll(/<a [^>]*href="([^"]+)"/g)) if (/^\/data\/|\/data\/|\.md$|\.json$/.test(m[1])) errors.push(`${f}: visible link to agent file ${m[1]}`);
-    const banner = src.includes('class="banner"');
-    const isHome = f === join(dir, 'index.html');
-    if (banner !== isHome) errors.push(`${f}: for-sale banner ${banner ? 'present' : 'missing'}`);
+    if (/for sale/i.test(text)) errors.push(`${f}: for-sale text`);
   } else if (f.endsWith('robots.txt')) continue;
   // Ignore URLs (?tier=verified) and code spans (field names in data docs).
   text = text.replace(/https?:\/\/\S+|\?tier=verified/g, ' ').replace(/`[^`]*`/g, ' ');
   // "verification" names the process; any other "verif…" word must be the tier name "Verified".
   for (const m of text.matchAll(/[A-Za-z]*verif[A-Za-z]*/gi)) if (!['Verified', 'verification', 'Verification', 'verify'].includes(m[0])) errors.push(`${f}: tier wording "${m[0]}" (use the tier name "Verified" only)`);
 }
-if (files.some((f) => f.endsWith('.md') && readFileSync(f, 'utf8').includes('This domain is for sale'))) errors.push('for-sale banner text in markdown');
+if (files.some((f) => f.endsWith('.md') && /for sale/i.test(readFileSync(f, 'utf8')))) errors.push('for-sale text in markdown');
 if (readFileSync(join(dir, 'llms.txt'), 'utf8').includes('for sale')) errors.push('for-sale text in llms.txt');
 
 const expired = join(dir, 'tax-planners/texas/austin/demo-tax-planner-2/index.html');

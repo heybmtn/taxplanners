@@ -49,7 +49,6 @@ export const site = {
     'A free, independent directory of tax planners in the United States: CPAs, enrolled agents and tax attorneys, listed by state and city with credentials, services and hours.',
 
   // Business settings (fill in per domain)
-  forSaleContact: 'mailto:hello@taxplanners.com?subject=taxplanners.com',
   submissionsEmail: 'hello@taxplanners.com',
   senderEmail: 'forms@taxplanners.com',
   verifiedPrice: '$99/year',

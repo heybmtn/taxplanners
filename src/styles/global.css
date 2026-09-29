@@ -24,10 +24,6 @@ p, li { max-width: var(--measure); }
 .js .js-only { display: revert; }
 .stack > * + * { margin-top: 0.75rem; }
 
-/* For-sale banner (home only) */
-.banner { background: var(--banner-bg); color: var(--banner-fg); font-size: 0.875rem; text-align: center; padding: 0.35rem var(--gutter); }
-.banner a { color: var(--banner-fg); display: inline-block; padding: 0.3rem 0; }
-
 /* Header and navigation */
 .site-header { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 20; }
 .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; }
