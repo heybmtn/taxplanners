@@ -16,9 +16,8 @@ interface Props {
   crumbs?: Crumb[];
   /** Markdown twin path (defaults to {path}index.md). false = none. */
   twin?: string | false;
-  isHome?: boolean;
 }
-const { title, description, path, noindex = false, jsonld = [], crumbs, twin, isHome = false } = Astro.props;
+const { title, description, path, noindex = false, jsonld = [], crumbs, twin } = Astro.props;
 const canonical = abs(path);
 const twinPath = twin === false ? null : (twin ?? `${path}index.md`);
 const ld = [...jsonld, ...(crumbs ? [breadcrumbLd(crumbs)] : [])];
@@ -46,11 +45,6 @@ const ld = [...jsonld, ...(crumbs ? [breadcrumbLd(crumbs)] : [])];
     <slot name="head" />
   </head>
   <body>
-    {isHome && (
-      <div class="banner">
-        This domain is for sale. <a href={site.forSaleContact}>Contact us about buying {site.domain}</a>
-      </div>
-    )}
     <a class="skip" href="#main">Skip to content</a>
     <Header />
     <main id="main">

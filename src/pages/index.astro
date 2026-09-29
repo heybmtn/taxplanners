@@ -18,7 +18,7 @@ const n = published.length;
 const featured = published.slice(0, 6);
 const countFor = (attr: string, key: string) => published.filter((l) => (l.attributes[attr] as string[] | undefined)?.includes(key)).length;
 ---
-<Base title={`${site.headline} | ${site.name}`} description={site.description} path="/" isHome jsonld={[...homeLd(), faqLd(faqs)]}>
+<Base title={`${site.headline} | ${site.name}`} description={site.description} path="/" jsonld={[...homeLd(), faqLd(faqs)]}>
   <section class="hero" aria-labelledby="hero-title">
     <div class="wrap">
       <h1 id="hero-title">{site.headline}</h1>
