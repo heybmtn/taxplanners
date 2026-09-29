@@ -2,7 +2,18 @@
   "name": "taxplanners",
   "private": true,
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "dev": "INCLUDE_DEMO=1 astro dev",
+    "build": "astro build && node scripts/check-output.mjs",
+    "build:preview": "INCLUDE_DEMO=1 astro build && node scripts/check-output.mjs",
+    "check": "astro check && node --test tests/*.test.ts && node scripts/contrast.mjs",
+    "test": "node --test tests/*.test.ts",
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "import:csv": "node scripts/import-csv.ts",
+    "demo:remove": "node scripts/remove-demo.mjs",
+    "worker:dev": "npm run build:preview && wrangler dev",
+    "deploy": "npm run build && wrangler deploy"
+  },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.3.5",
@@ -15,5 +26,8 @@
     "lighthouse": "^13.5.0",
     "typescript": "^6.0.3",
     "wrangler": "^4.143.0"
+  },
+  "engines": {
+    "node": ">=22.18"
   }
 }

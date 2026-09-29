@@ -43,7 +43,7 @@ const { region, term } = Astro.props as { region?: Region; term?: Term };
     <Base title={page.title} description={page.description} path={page.path} noindex={page.noindex} crumbs={page.crumbs} jsonld={[itemListLd(page.h1, term.listings)]}>
       <h1>{page.h1}</h1>
       <p>{page.intro}</p>
-      <ListingList listings={term.listings} showCity />
+      <ListingList listings={term.listings} showCity heading={`${term.listings.length} listed`} />
     </Base>
   );
 })()}

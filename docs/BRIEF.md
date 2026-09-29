@@ -54,3 +54,6 @@ What does a tax planner do? · Tax planner, tax preparer or CPA: what's the diff
 - No listings CSV given → 3 demo listings (`demo: true`, Austin, TX), excluded from production builds, removed with `npm run demo:remove`.
 - Taxonomy pages: credentials only (research shows "CPA/enrolled agent near me" searches), and only when a term has 3+ listings.
 - The listing-form query parameters (`?listing=`, `?tier=verified`) are applied by the Worker with HTMLRewriter, so the form page needs no client JS besides Turnstile.
+- The Worker also runs on `/add-your-business/thanks-verified/` so it can add the business name to the payment link as a reference (only when `paymentReferenceParam` is set).
+- Font: system UI stack, so there is no font file to preload.
+- Tier wording rule enforced by `scripts/check-output.mjs`: any "verif…" word in page text must be exactly the tier name "Verified".

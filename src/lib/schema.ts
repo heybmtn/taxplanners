@@ -43,8 +43,8 @@ export const listingSchema = z
     lat: z.number().min(-90).max(90).nullable().optional(),
     lng: z.number().min(-180).max(180).nullable().optional(),
     phone: z.string().max(40).nullable().optional(),
-    website: z.string().url().nullable().optional(),
-    sameAs: z.array(z.string().url()).default([]),
+    website: z.url().nullable().optional(),
+    sameAs: z.array(z.url()).default([]),
     hours: z.partialRecord(z.enum(weekdays), dayHours).default({}),
     summary: z.string().min(10).max(400),
     attributes: attributesSchema().default({}),
@@ -52,7 +52,7 @@ export const listingSchema = z
     source: z.string().min(1).max(200),
     // Verified-only (ignored on Basic)
     description: z.string().max(1200).nullable().optional(),
-    bookingUrl: z.string().url().nullable().optional(),
+    bookingUrl: z.url().nullable().optional(),
   })
   .strict();
 

@@ -21,7 +21,7 @@ const others = region.cities.filter((c) => c.slug !== city.slug);
 <Base title={page.title} description={page.description} path={page.path} noindex={page.noindex} crumbs={page.crumbs} jsonld={[itemListLd(page.h1, city.listings)]}>
   <h1>{page.h1}</h1>
   <p>{city.intro ?? `${n} ${plural(n)} listed in ${city.name}, ${region.name}${verifiedCount ? `, ${verifiedCount} of them Verified` : ''}. Each listing shows its ${site.factsPhrase} as last updated.`}</p>
-  <ListingList listings={city.listings} />
+  <ListingList listings={city.listings} heading={`${city.listings.length} ${plural(city.listings.length)} in ${city.name}`} />
   <BestFor listings={city.listings} place={city.name} />
   {others.length > 0 && (
     <section aria-labelledby="nearby">
