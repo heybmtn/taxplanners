@@ -1,7 +1,7 @@
 /* Engine styles. Colours, font and feel come from src/theme.css tokens. */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--paper); color: var(--ink); font: var(--font-size)/var(--line-height) var(--font); overflow-wrap: anywhere; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: var(--font-size)/var(--line-height) var(--font); overflow-wrap: break-word; }
 a { color: var(--accent); text-underline-offset: 0.15em; }
 a:hover { text-decoration-thickness: 2px; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
