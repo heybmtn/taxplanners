@@ -1,0 +1,8 @@
+---
+// "Verified" label. Opens the shared explanation popover (rendered once in the layout); works without JavaScript.
+import Icon from './Icon.astro';
+import { copy } from '../lib/copy.ts';
+---
+<button type="button" class="badge-verified" popovertarget="verified-info" aria-label={`${copy.badge}: what does this mean?`}>
+  <Icon name="check" />{copy.badge}
+</button>

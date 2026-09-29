@@ -43,17 +43,23 @@ What does a tax planner do? · Tax planner, tax preparer or CPA: what's the diff
 
 ## Design direction
 
-- **Layout: location-led.** Searchers already know their city; they compare credentials. Home order: for-sale banner → header → H1 + one-line promise → "Browse by state" list → "Browse by credential" tiles (only terms with pages) → "How listings work" (Basic/Verified disclosure) → FAQ → footer.
-- **Palette:** ink `#1b2a3a` on paper `#fbfaf6`; accent ledger green `#0d6149` (links, Verified border/badge); muted `#4a5663`; rule `#d9d6cc`. Banner: paper text on ink. All pairs ≥ 4.5:1 (checked with `scripts/contrast.mjs`).
-- **Font:** system UI stack (no font file to download; fastest; no layout shift). Body 18px / 1.6, measure 70ch.
-- **Feel:** calm, ledger-like; dense lists, 4px radius, 1px rules instead of shadows; one accent: a 4px green left border on Verified items.
+Redesign (September 2026) around **"Find a tax professional you can verify"**: search, compare, credentials, verification.
+
+- **Layout: search-led.** Home order: for-sale banner → header → navy hero with the search bar (location + service/credential) and trust signals → popular searches (real `/search/` filters with counts) → listings in the directory (Verified first, with disclosure) → browse by state → how verification works (4 steps) → for tax professionals → FAQ → footer. An empty directory shows a "We're building the directory" state instead of empty sections.
+- **Search:** `/search/`, filtered server-side by the Worker (location, state, credentials, services, client types, meeting format, languages, Verified only; 20 per page). Filters are a sidebar on desktop and a modal drawer on phones.
+- **City landing pages** per service, client type or credential (`/tax-planners/{state}/{city}/{option}/`) only when 3+ listings match, so there are no thin pages.
+- **Palette:** navy `#102A43`, teal `#147D6B` (buttons; `#0E5E50` for text), warm off-white `#F7F8F5`, blue-gray `#E8EEF3`, gold `#C99A2E` only for the Verified badge border/accent (badge text `#6B4C0C` on `#FBF3DE`), ink `#172B4D`, muted `#52606D`, borders `#D9E2EC`. All text pairs ≥ 4.5:1 (`scripts/contrast.mjs`).
+- **Font:** Inter variable (self-hosted WOFF2, 48 KB, preloaded, metric-matched fallback). Body 17px / 1.6.
+- **Feel:** spacious cards with soft shadows, 10px radius, pill chips and tags; the Verified badge is text ("✓ Verified") plus a gold top border, never colour alone, and opens an explanation popover (Verified is not an endorsement).
 
 ## Defaults chosen (change in `site.config.ts`)
 
 - For-sale contact, submissions inbox and payment: `hello@taxplanners.com` placeholders, payment is a `mailto:` (so the button reads "Email us to pay"). Verified price: **$99/year** placeholder.
 - No listings CSV given → 3 demo listings (`demo: true`, Austin, TX), excluded from production builds, removed with `npm run demo:remove`.
 - Taxonomy pages: credentials only (research shows "CPA/enrolled agent near me" searches), and only when a term has 3+ listings.
-- The listing-form query parameters (`?listing=`, `?tier=verified`) are applied by the Worker with HTMLRewriter, so the form page needs no client JS besides Turnstile.
-- The Worker also runs on `/add-your-business/thanks-verified/` so it can add the business name to the payment link as a reference (only when `paymentReferenceParam` is set).
-- Font: system UI stack, so there is no font file to preload.
-- Tier wording rule enforced by `scripts/check-output.mjs`: any "verif…" word in page text must be exactly the tier name "Verified".
+- The listing-form query parameters (`?listing=`, `?tier=verified`) and the signed form token are applied by the Worker with HTMLRewriter.
+- The Worker runs on `/search/`, `/add-your-business/` and `/add-your-business/thanks-verified/` (payment reference) only.
+- Client JS: one ~2 KB progressive-enhancement file (dialog fallback, auto-apply filters on desktop, 3-step wizard, submit states). Everything works without it.
+- Form spam protection works without Turnstile (honeypot, signed time token, rate limit, link check, duplicate check); Turnstile is added when configured. The public form never shows configuration warnings.
+- Verification dates (`verification.businessConfirmed`, `credentialsChecked`) are shown only when recorded in the listing file.
+- Tier wording rule enforced by `scripts/check-output.mjs`: any "verif…" word in page text must be the tier name "Verified", or "verification"/"verify" for the process.

@@ -51,6 +51,16 @@ export const listingSchema = z
     lastUpdated: date,
     source: z.string().min(1).max(200),
     // Verified-only (ignored on Basic)
+    /** What was actually checked, and when. Only set what really happened. */
+    verification: z
+      .object({
+        businessConfirmed: date.nullable().optional(),
+        credentialsChecked: date.nullable().optional(),
+        credentialSource: z.string().max(200).nullable().optional(),
+      })
+      .strict()
+      .nullable()
+      .optional(),
     description: z.string().max(1200).nullable().optional(),
     bookingUrl: z.url().nullable().optional(),
   })

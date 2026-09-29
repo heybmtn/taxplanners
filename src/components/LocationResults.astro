@@ -1,0 +1,27 @@
+---
+// Results block for city, city+service, state and credential pages: refine links, cards, "best for".
+import type { Entry, Facet } from '../lib/data.ts';
+import ListingList from './ListingList.astro';
+import BestFor from './BestFor.astro';
+import site from '../../site.config.ts';
+import { attributeDefs } from '../lib/schema.ts';
+import { plural } from '../lib/format.ts';
+interface Props { listings: Entry[]; place: string; searchParams: string; facets?: Facet[]; heading?: string }
+const { listings, place, searchParams, facets = [], heading } = Astro.props;
+// Refine links into /search/ for options that at least one listing here has.
+const refine: { label: string; href: string; count: number }[] = [];
+for (const p of site.popularSearches) {
+  const def = attributeDefs[p.attr];
+  if (def?.type !== 'multi') continue;
+  const count = listings.filter((l) => (l.attributes[p.attr] as string[] | undefined)?.includes(p.key)).length;
+  const facet = facets.find((f) => f.attr === p.attr && f.key === p.key);
+  if (count > 0) refine.push({ label: p.label, href: facet?.url ?? `/search/?${searchParams}&${p.attr}=${p.key}`, count });
+}
+---
+{refine.length > 1 && (
+  <nav aria-label="Refine" style="margin-bottom:1.5rem">
+    <ul class="chips">{refine.map((r) => <li><a class="chip" href={r.href}>{r.label} <span class="count">{r.count}</span></a></li>)}</ul>
+  </nav>
+)}
+<ListingList listings={listings} heading={heading ?? `${listings.length} ${plural(listings.length)} in ${place}`} />
+<BestFor listings={listings} place={place} />

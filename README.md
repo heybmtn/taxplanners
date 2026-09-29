@@ -1,6 +1,14 @@
 # TaxPlanners.com
 
-A static, agent-first directory of tax planners in the US. Astro (static output, zero client JS except Turnstile on the form), hosted on Cloudflare Workers static assets, with one small Worker for the "Add your business" form.
+A static, agent-first directory of tax planners in the US. Astro (static output), hosted on Cloudflare Workers static assets, with one small Worker for search and the "Add your business" form. Client JavaScript is one ~2 KB progressive-enhancement file (filter drawer fallback, form wizard, submit states); everything works without it.
+
+## How search works
+
+`/search/` is built statically with every published listing card. The Worker (`src/search-page.ts`) reads the URL (`location`, `need`, `state`, `credentials`, `services`, `clients`, `meeting`, `languages`, `verified`, `page`), filters `/data/listings.json` with `src/lib/search.ts`, and uses HTMLRewriter to keep only the matching cards for the page, tick the filters, and add result counts, filter chips and pagination. Listings stay in files; there is no database. Past a few thousand listings, split the search page per state.
+
+## Form spam protection
+
+Always on, server-side (`src/form/handler.ts`): honeypot field, a signed form token that must be 3 seconds to 24 hours old (added by the Worker when it serves the form), 5 submissions per IP per minute (`ratelimits` binding), a link-stuffing check, and a 10-minute duplicate check (edge cache; custom domain only). Cloudflare Turnstile is added automatically when configured. Set the secret `FORM_SECRET` (any long random string) so tokens are signed with a private key.
 
 ## Develop
 
@@ -23,7 +31,8 @@ Node 22.18+ (TypeScript scripts and tests run with Node's built-in type strippin
 - `docs/BRIEF.md`: keyword research, templates and design decisions.
 - `src/content/listings/{region}/{city}/{slug}.json`: one file per listing, validated by `src/lib/schema.ts`. `src/content/places/` holds optional region/city intros.
 - `src/pages/`: HTML routes; `[...twin].md.ts` builds a markdown twin for every page; `llms.txt`, `llms-full.txt`, `data/*.json` and `robots.txt` are endpoints.
-- `src/worker.ts` + `src/form/handler.ts`: the form Worker (Turnstile, zod validation, `send_email`).
+- `src/worker.ts`: the Worker (search, form, daily rebuild). `src/search-page.ts` + `src/lib/search.ts`: search. `src/form/handler.ts`: form validation, spam checks and the email.
+- `src/components/`: Header, Footer, SearchBar, SearchFilters, ListingCard, VerifiedBadge (+ VerifiedInfo popover), CredentialBadges, VerificationPanel, ListingProfile, EmptyState, PlanComparison, Faqs. `src/styles/global.css`: the design system.
 - `UPDATING.md`: how an AI agent edits listings and handles submission emails.
 
 ## Deploy
@@ -42,9 +51,10 @@ One-off manual deploy: `npx wrangler login && npm run deploy`.
 Cloudflare dashboard steps:
 1. **Custom domain:** Workers & Pages → taxplanners → Settings → Domains & Routes → add `taxplanners.com` (and `www` redirect).
 2. **Email Routing:** enable on the zone, add and verify the destination address set in `wrangler.jsonc` (`send_email.destination_address`, same as `submissionsEmail`). The sender (`senderEmail`) must be on the zone.
-3. **Turnstile:** create a widget for the domain; put the site key in `site.config.ts` (`turnstileSiteKey`) or the `PUBLIC_TURNSTILE_SITE_KEY` build variable, and add the secret `TURNSTILE_SECRET` (Settings → Variables & Secrets). Without the secret, every submission fails closed to the error page.
-4. **Payment link:** set `verifiedPaymentLink` (e.g. a Stripe Payment Link, success URL `https://taxplanners.com/add-your-business/thanks-verified/`) and, for Stripe, `paymentReferenceParam: 'client_reference_id'`.
-5. **AI crawlers:** in AI Crawl Control, make sure the bots allowed in `robots.txt` are not blocked. Optionally enable Markdown for Agents.
+3. **Form secret:** add the secret `FORM_SECRET` (a long random string) under Settings → Variables & Secrets.
+4. **Turnstile (optional, recommended):** create a widget for the domain; put the site key in `site.config.ts` (`turnstileSiteKey`) or the `PUBLIC_TURNSTILE_SITE_KEY` build variable, and add the secret `TURNSTILE_SECRET`. Set both together: with the secret set, every submission needs a valid Turnstile token.
+5. **Payment link:** set `verifiedPaymentLink` (e.g. a Stripe Payment Link, success URL `https://taxplanners.com/add-your-business/thanks-verified/`) and, for Stripe, `paymentReferenceParam: 'client_reference_id'`.
+6. **AI crawlers:** in AI Crawl Control, make sure the bots allowed in `robots.txt` are not blocked. Optionally enable Markdown for Agents.
 
 ## Start the next domain from this repo
 

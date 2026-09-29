@@ -2,7 +2,9 @@
 import '../theme.css';
 import '../styles/global.css';
 import site from '../../site.config.ts';
-import { copy, formUrl, plansUrl } from '../lib/copy.ts';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import VerifiedInfo from '../components/VerifiedInfo.astro';
 import { abs, breadcrumbLd, type Crumb } from '../lib/seo.ts';
 
 interface Props {
@@ -30,6 +32,7 @@ const ld = [...jsonld, ...(crumbs ? [breadcrumbLd(crumbs)] : [])];
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex,follow" />}
+    <link rel="preload" href="/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
     {twinPath && <link rel="alternate" type="text/markdown" href={twinPath} title="Markdown version" />}
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={site.name} />
@@ -37,7 +40,7 @@ const ld = [...jsonld, ...(crumbs ? [breadcrumbLd(crumbs)] : [])];
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta name="twitter:card" content="summary" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#102a43" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     {ld.map((j) => <script type="application/ld+json" is:inline set:html={JSON.stringify(j)} />)}
     <slot name="head" />
@@ -49,19 +52,10 @@ const ld = [...jsonld, ...(crumbs ? [breadcrumbLd(crumbs)] : [])];
       </div>
     )}
     <a class="skip" href="#main">Skip to content</a>
-    <header class="site-header">
-      <div class="wrap">
-        <a class="brand" href="/">{site.name}</a>
-        <nav aria-label="Main">
-          <a href={`/${site.hub}/`}>Browse by {site.regionWord}</a>
-          <a href={plansUrl}>Listing plans</a>
-          <a href={formUrl}>Add your business</a>
-        </nav>
-      </div>
-    </header>
-    <main id="main" class="wrap">
+    <Header />
+    <main id="main">
       {crumbs && (
-        <nav class="crumbs" aria-label="Breadcrumb">
+        <nav class="crumbs wrap" aria-label="Breadcrumb">
           <ol>
             {crumbs.map((c, i) => (
               <li>{i === crumbs.length - 1 ? <span aria-current="page">{c.name}</span> : <a href={c.url}>{c.name}</a>}</li>
@@ -71,17 +65,10 @@ const ld = [...jsonld, ...(crumbs ? [breadcrumbLd(crumbs)] : [])];
       )}
       <slot />
     </main>
-    <footer class="site-footer">
-      <div class="wrap">
-        <ul>
-          <li><a href="/about/">About and sources</a></li>
-          <li><a href="/privacy/">Privacy</a></li>
-          <li><a href={formUrl}>Add or update a listing</a></li>
-          <li><a href={plansUrl}>Listing plans</a></li>
-          <li><a href="/llms.txt">llms.txt</a></li>
-        </ul>
-        <p>{copy.footer}</p>
-      </div>
-    </footer>
+    <Footer />
+    <VerifiedInfo />
+    <script>
+      import '../scripts/enhance.ts';
+    </script>
   </body>
 </html>

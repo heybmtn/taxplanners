@@ -1,0 +1,12 @@
+---
+import Icon from './Icon.astro';
+interface Props { title: string; text: string; actions?: { label: string; href: string; primary?: boolean }[]; icon?: string; headingLevel?: 2 | 3; id?: string; hidden?: boolean }
+const { title, text, actions = [], icon = 'search', headingLevel = 2, id, hidden } = Astro.props;
+const H = headingLevel === 2 ? 'h2' : 'h3';
+---
+<div class="empty" id={id} hidden={hidden}>
+  <Icon name={icon} />
+  <H>{title}</H>
+  <p>{text}</p>
+  {actions.length > 0 && <div class="btn-row">{actions.map((a) => <a class={`btn ${a.primary ? 'btn-primary' : 'btn-secondary'}`} href={a.href}>{a.label}</a>)}</div>}
+</div>

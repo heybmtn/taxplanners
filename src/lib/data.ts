@@ -6,7 +6,8 @@ import { attributeDefs } from './schema.ts';
 import { effectiveTier, sortListings, type Tier } from './tier.ts';
 
 export type Entry = Listing & { region: string; city: string; url: string; tierNow: Tier };
-export type City = { slug: string; name: string; region: string; regionName: string; url: string; listings: Entry[]; intro?: string };
+export type Facet = { attr: string; key: string; label: string; heading: string; url: string; listings: Entry[] };
+export type City = { slug: string; name: string; region: string; regionName: string; abbr: string; url: string; listings: Entry[]; intro?: string; facets: Facet[] };
 export type Region = { slug: string; name: string; abbr: string; url: string; cities: City[]; listings: Entry[]; intro?: string };
 export type Term = { attr: string; key: string; label: string; url: string; listings: Entry[] };
 
@@ -16,7 +17,7 @@ const includeDemo = process.env.INCLUDE_DEMO === '1';
 export const hubUrl = `/${site.hub}/`;
 const titleCase = (s: string) => s.split('-').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ');
 
-let cache: Promise<{ all: Entry[]; published: Entry[]; regions: Region[]; terms: Term[] }> | undefined;
+let cache: Promise<{ all: Entry[]; published: Entry[]; regions: Region[]; terms: Term[]; languages: string[] }> | undefined;
 
 export function loadData() {
   return (cache ??= build());
@@ -48,13 +49,36 @@ async function build() {
     let c = r.cities.find((x) => x.slug === l.city);
     if (!c) {
       const p = places.get(`${l.region}/${l.city}`);
-      c = { slug: l.city, name: p?.data.name ?? l.address.locality, region: l.region, regionName: r.name, url: `${r.url}${l.city}/`, listings: [], intro: p?.body?.trim() };
+      c = { slug: l.city, name: p?.data.name ?? l.address.locality, region: l.region, regionName: r.name, abbr: r.abbr, url: `${r.url}${l.city}/`, listings: [], intro: p?.body?.trim(), facets: [] };
       r.cities.push(c);
     }
     c.listings.push(l);
   }
   const regions = [...regionMap.values()].sort((a, b) => a.name.localeCompare(b.name));
   for (const r of regions) r.cities.sort((a, b) => a.name.localeCompare(b.name));
+
+  // City landing pages per attribute option (e.g. /tax-planners/texas/austin/small-business/), only with 3+ listings.
+  const facetKeys = new Set<string>();
+  for (const def of Object.values(attributeDefs)) {
+    if (def.type !== 'multi' || !def.cityFacet) continue;
+    for (const key of Object.keys(def.options)) {
+      if (facetKeys.has(key)) throw new Error(`Option "${key}" is used by two attributes; city facet URLs must be unique`);
+      facetKeys.add(key);
+    }
+  }
+  for (const r of regions)
+    for (const c of r.cities) {
+      for (const l of c.listings) if (facetKeys.has(l.slug)) throw new Error(`Listing slug "${l.slug}" clashes with a city facet URL; rename the file`);
+      for (const [attr, def] of Object.entries(attributeDefs)) {
+        if (def.type !== 'multi' || !def.cityFacet) continue;
+        for (const [key, label] of Object.entries(def.options)) {
+          const listings = c.listings.filter((l) => (l.attributes[attr] as string[] | undefined)?.includes(key));
+          if (listings.length >= MIN_INDEXABLE) c.facets.push({ attr, key, label, heading: def.cityFacet(label, `${c.name}, ${r.abbr}`), url: `${c.url}${key}/`, listings });
+        }
+      }
+    }
+
+  const languages = [...new Set(published.flatMap((l) => (l.attributes.languages as string[] | undefined) ?? []))].sort();
 
   const terms: Term[] = [];
   for (const [attr, def] of Object.entries(attributeDefs)) {
@@ -64,7 +88,7 @@ async function build() {
       if (listings.length >= MIN_INDEXABLE) terms.push({ attr, key, label, url: `/${def.taxonomy.segment}/${key}/`, listings });
     }
   }
-  return { all, published, regions, terms };
+  return { all, published, regions, terms, languages };
 }
 
 /** Other listings in the same city first, then the same region. */

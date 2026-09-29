@@ -5,15 +5,15 @@ interface Props { listings: Entry[]; place: string }
 const groups = bestFor(Astro.props.listings);
 ---
 {groups.length > 0 && (
-  <section aria-labelledby="best-for">
+  <section class="panel" aria-labelledby="best-for" style="margin-top:1rem">
     <h2 id="best-for">Best for, in {Astro.props.place}</h2>
-    <p class="muted small">Built from each listing's own details. Not a ranking.</p>
-    <dl>
+    <p class="small muted">Built from each listing's own details. Not a ranking.</p>
+    <dl class="facts" style="margin-bottom:1rem">
       {groups.map((g) => (
-        <>
-          <dt><strong>{g.label}</strong> ({g.listings.length})</dt>
+        <div>
+          <dt>{g.label} ({g.listings.length})</dt>
           <dd>{g.listings.map((l, i) => <>{i > 0 && ', '}<a href={l.url}>{l.name}</a></>)}</dd>
-        </>
+        </div>
       ))}
     </dl>
   </section>

@@ -1,12 +1,15 @@
 ---
+// A list of listing cards with the paid-placement disclosure (Verified listings are shown first).
 import type { Entry } from '../lib/data.ts';
 import { copy, plansUrl } from '../lib/copy.ts';
 import ListingCard from './ListingCard.astro';
-interface Props { listings: Entry[]; showCity?: boolean; heading?: string }
-const { listings, showCity = false, heading } = Astro.props;
+interface Props { listings: Entry[]; heading?: string; headingId?: string }
+const { listings, heading, headingId = 'listings' } = Astro.props;
 ---
-{heading && <h2>{heading}</h2>}
-<p class="disclosure">{copy.disclosure} <a href={plansUrl}>{copy.disclosureLink}</a></p>
-<ul class="cards">
-  {listings.map((l) => <ListingCard l={l} showCity={showCity} />)}
-</ul>
+<section aria-labelledby={heading ? headingId : undefined}>
+  {heading && <h2 id={headingId}>{heading}</h2>}
+  <p class="disclosure">{copy.disclosure} <a href={plansUrl}>{copy.disclosureLink}</a></p>
+  <ul class="results">
+    {listings.map((l) => <ListingCard l={l} />)}
+  </ul>
+</section>

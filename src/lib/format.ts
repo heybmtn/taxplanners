@@ -107,3 +107,19 @@ export function bestFor(list: Entry[]): { label: string; listings: Entry[] }[] {
 
 export const plural = (n: number) => (n === 1 ? site.entity.singular : site.entity.plural);
 export const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
+
+/** Labels for a multi attribute's selected options (short card labels when available). */
+export function optionLabels(l: Listing, attr: string, short = false): string[] {
+  const def = attributeDefs[attr];
+  const v = l.attributes[attr];
+  if (!def || def.type !== 'multi' || !Array.isArray(v)) return [];
+  return (v as string[]).map((k) => (short && def.short?.[k]) || def.options[k]).filter(Boolean);
+}
+
+/** "Virtual + In-person", "Virtual", or null when not listed. */
+export function meetingText(l: Listing): string | null {
+  const on = Object.entries(site.meetingFormats as Record<string, string>).filter(([k]) => l.attributes[k] === true).map(([, v]) => v);
+  return on.length ? on.join(' + ') : null;
+}
+
+export const shortUrl = (u: string) => u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');

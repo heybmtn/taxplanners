@@ -1,0 +1,30 @@
+---
+import site from '../../site.config.ts';
+import Logo from './Logo.astro';
+import { copy, formUrl, plansUrl } from '../lib/copy.ts';
+const cols = [
+  { title: 'Find', links: [['Search tax planners', '/search/'], [`Browse ${site.regionWord}s`, `/${site.hub}/`], ['Popular services', '/#popular']] },
+  { title: 'Professionals', links: [['List your business', formUrl], ['Get Verified', `${formUrl}?tier=verified`], ['Listing plans', plansUrl]] },
+  { title: 'Company', links: [['About and sources', '/about/'], ['How verification works', '/verification/'], ['Contact', '/contact/'], ['Privacy', '/privacy/'], ['Terms', '/terms/'], ['llms.txt', '/llms.txt']] },
+];
+---
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <Logo />
+        <p>{site.independence}</p>
+      </div>
+      {cols.map((c) => (
+        <nav aria-label={c.title}>
+          <h2>{c.title}</h2>
+          <ul>{c.links.map(([label, href]) => <li><a href={href}>{label}</a></li>)}</ul>
+        </nav>
+      ))}
+    </div>
+    <div class="footer-note">
+      <p>{copy.footer}</p>
+      <p>{site.verifiedNotEndorsement}</p>
+    </div>
+  </div>
+</footer>

@@ -1,8 +1,8 @@
 ---
-import Base from '../../layouts/Base.astro';
+import ResultPage from '../../components/ResultPage.astro';
 import site from '../../../site.config.ts';
 ---
-<Base title={`Something went wrong | ${site.name}`} description="Your listing details could not be sent." path="/add-your-business/error/" noindex twin={false}>
-  <h1>Sorry, your details were not sent</h1>
-  <p>Please check the form and <a href="/add-your-business/">try again</a>, or email the details to <a href={`mailto:${site.submissionsEmail}`}>{site.submissionsEmail}</a>.</p>
-</Base>
+<ResultPage title="Something went wrong" heading="Sorry, we couldn't send your details" path="/add-your-business/error/" kind="error">
+  <p>Something went wrong on our side and your details were not sent. Please try again in a few minutes, or email them to <a href={`mailto:${site.submissionsEmail}`}>{site.submissionsEmail}</a>.</p>
+  <div class="btn-row"><a class="btn btn-primary" href="/add-your-business/">Try again</a></div>
+</ResultPage>

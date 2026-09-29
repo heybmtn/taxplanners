@@ -1,6 +1,8 @@
 ---
 // Hub page (all regions) and taxonomy index pages (all terms).
 import Base from '../../layouts/Base.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import SearchBar from '../../components/SearchBar.astro';
 import site from '../../../site.config.ts';
 import { loadData, isIndexable, type Region } from '../../lib/data.ts';
 import { hubPage, taxonomies } from '../../lib/pages.ts';
@@ -20,18 +22,32 @@ const taxCount = tax ? tax.terms.reduce((n: number, t: any) => n + t.listings.le
 ---
 {page && (
   <Base title={page.title} description={page.description} path={page.path} noindex={page.noindex} crumbs={page.crumbs}>
-    <h1>{page.h1}</h1>
-    {p.regions.length === 0 && <p>No listings yet. <a href="/add-your-business/">Add the first one</a>.</p>}
-    <ul class="grid-links">
-      {p.regions.map((r: Region) => <li><a href={r.url}>{r.name} <span>{r.listings.length}</span></a></li>)}
-    </ul>
+    <div class="wrap">
+      <div class="page-head">
+        <h1>{page.h1}</h1>
+        <p class="lead">{p.total > 0 ? `${p.total} ${p.total === 1 ? site.entity.singular : site.entity.plural} listed in ${p.regions.length} ${p.regions.length === 1 ? site.regionWord : `${site.regionWord}s`}. Pick a ${site.regionWord}, or search by city or ZIP.` : ''}</p>
+      </div>
+      {p.regions.length === 0 ? (
+        <EmptyState icon="building" title="We're building the directory" text={`We're currently adding ${site.professional}s. If you're a ${site.professional}, you can add your business for free.`} actions={[{ label: 'List your business', href: '/add-your-business/', primary: true }]} />
+      ) : (
+        <>
+          <SearchBar compact idPrefix="hub" />
+          <h2 style="margin-top:2rem">All {site.regionWord}s with listings</h2>
+          <ul class="state-grid">
+            {p.regions.map((r: Region) => <li><a class="state-link" href={r.url}>{r.name} <span class="count">{r.listings.length}</span></a></li>)}
+          </ul>
+        </>
+      )}
+    </div>
   </Base>
 )}
 {tax && (
   <Base title={`${cap(tax.segment.replace(/-/g, ' '))} | ${site.name}`} description={`${cap(site.entity.plural)} grouped by ${tax.segment.replace(/-/g, ' ')}.`} path={`/${tax.segment}/`} noindex={!isIndexable(taxCount)} crumbs={[{ name: 'Home', url: '/' }, { name: cap(tax.segment.replace(/-/g, ' ')), url: `/${tax.segment}/` }]}>
-    <h1>{tax.title}</h1>
-    <ul class="grid-links">
-      {tax.terms.map((t: any) => <li><a href={t.url}>{t.label} <span>{t.listings.length}</span></a></li>)}
-    </ul>
+    <div class="wrap">
+      <div class="page-head"><h1>{tax.title}</h1></div>
+      <ul class="state-grid">
+        {tax.terms.map((t: any) => <li><a class="state-link" href={t.url}>{t.label} <span class="count">{t.listings.length}</span></a></li>)}
+      </ul>
+    </div>
   </Base>
 )}

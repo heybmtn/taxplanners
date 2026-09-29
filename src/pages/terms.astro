@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../../site.config.ts';
+import { copy } from '../lib/copy.ts';
+---
+<Base title={`Terms of use | ${site.name}`} description={`The terms for using ${site.name} and for listing a business.`} path="/terms/" crumbs={[{ name: 'Home', url: '/' }, { name: 'Terms', url: '/terms/' }]}>
+  <div class="wrap prose">
+    <div class="page-head"><h1>Terms of use</h1><p class="lead">Plain-language terms for using this directory.</p></div>
+    <h2>Information, not advice</h2>
+    <p>{site.name} is a directory. Nothing on it is tax, legal or financial advice, or a recommendation of any {site.entity.singular}. Check credentials and terms with the professional before you hire them.</p>
+    <h2>Accuracy</h2>
+    <p>We take care to publish accurate details and show when each listing was last updated, but details can change. Basic listings are not confirmed by the owner. {site.verifiedNotEndorsement}</p>
+    <h2>Listings</h2>
+    <p>{copy.basicDefinition} {copy.verifiedDefinition}</p>
+    <p>If you submit details, you confirm they are accurate and that you may share them. We may edit submissions for consistency, and we may decline or remove listings that are inaccurate or misleading. A Verified listing that fails our checks is refunded and stays Basic.</p>
+    <h2>Independence</h2>
+    <p>{site.independence} We take no referral fees and publish no ratings or reviews.</p>
+    <h2>Contact</h2>
+    <p>Questions about these terms: <a href={`mailto:${site.submissionsEmail}`}>{site.submissionsEmail}</a>.</p>
+  </div>
+</Base>

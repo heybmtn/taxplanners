@@ -1,0 +1,14 @@
+---
+import site from '../../site.config.ts';
+import { copy } from '../lib/copy.ts';
+---
+<div id="verified-info" popover class="popover" role="dialog" aria-labelledby="verified-info-title">
+  <h2 id="verified-info-title">What does {copy.badge} mean?</h2>
+  <p>{site.verifiedMeaning}</p>
+  <p><strong>{site.verifiedNotEndorsement}</strong></p>
+  <p class="small muted">Verified listings are paid ({site.verifiedPrice}) and shown first. Basic listings are free and not checked by the owner.</p>
+  <div class="btn-row">
+    <a class="btn btn-secondary btn-sm" href="/verification/">How verification works</a>
+    <button type="button" class="btn btn-ghost btn-sm" popovertarget="verified-info" popovertargetaction="hide">Close</button>
+  </div>
+</div>

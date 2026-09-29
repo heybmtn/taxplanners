@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../../site.config.ts';
+import { formUrl } from '../lib/copy.ts';
+---
+<Base title={`Contact | ${site.name}`} description={`How to contact ${site.name} about a listing, a correction or a Verified listing.`} path="/contact/" crumbs={[{ name: 'Home', url: '/' }, { name: 'Contact', url: '/contact/' }]}>
+  <div class="wrap prose">
+    <div class="page-head"><h1>Contact</h1><p class="lead">We're a small, independent team. Email is the best way to reach us.</p></div>
+    <div class="grid grid-2">
+      <section class="panel"><h2>Add or correct a listing</h2><p>The quickest way is the form. It works for new listings, corrections and Verified requests.</p><p><a class="btn btn-primary" href={formUrl}>List your business</a></p></section>
+      <section class="panel"><h2>Everything else</h2><p>Questions, removal requests or payment for a Verified listing: <a href={`mailto:${site.submissionsEmail}`}>{site.submissionsEmail}</a>.</p></section>
+    </div>
+    <p class="muted small">We can't give tax advice or recommend a specific {site.entity.singular}.</p>
+  </div>
+</Base>

@@ -1,8 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
 import site from '../../site.config.ts';
+import SearchBar from '../components/SearchBar.astro';
 ---
 <Base title={`Page not found | ${site.name}`} description="This page does not exist." path="/404/" noindex twin={false}>
+  <div class="wrap prose" style="padding-top:1.5rem">
   <h1>Page not found</h1>
   <p>The page you asked for does not exist or has moved. Try <a href={`/${site.hub}/`}>browsing {site.entity.plural} by {site.regionWord}</a> or go to the <a href="/">home page</a>.</p>
+  <SearchBar compact idPrefix="nf" />
+  </div>
 </Base>

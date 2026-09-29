@@ -36,3 +36,26 @@ export const plans = {
   sendLabel: `Send your ${e.singular}'s details`,
   sendUrl: `${formUrl}?tier=verified`,
 };
+
+/** Basic vs Verified comparison. Every row is something the site actually does today. */
+export const comparison: { feature: string; basic: boolean; verified: boolean }[] = [
+  { feature: 'Directory listing (city, state and search pages)', basic: true, verified: true },
+  { feature: 'Business information: address, phone, website, hours', basic: true, verified: true },
+  { feature: 'Credentials, services and client types displayed', basic: true, verified: true },
+  { feature: 'Update any time with the form', basic: true, verified: true },
+  { feature: 'Owner confirmation of the details', basic: false, verified: true },
+  { feature: `Credential check with ${site.credentialSource}`, basic: false, verified: true },
+  { feature: 'Verified badge', basic: false, verified: true },
+  { feature: 'Shown first, above Basic listings', basic: false, verified: true },
+  { feature: 'Your own description', basic: false, verified: true },
+  { feature: 'Booking link', basic: false, verified: true },
+  { feature: 'Rechecked at each annual renewal', basic: false, verified: true },
+];
+
+/** The verification process in four steps (home page, /verification/). */
+export const howItWorks = [
+  { title: 'The owner applies', text: `The owner or a staff member sends the business details and chooses Verified (${site.verifiedPrice}).` },
+  { title: 'We confirm the business', text: 'We confirm with the owner, using the contact details on the listing, that they run the business and that the details are right.' },
+  { title: 'We check the credential', text: `We look up each stated ${site.credentialName} in ${site.credentialSource}. If it does not check out, the listing stays Basic and we refund.` },
+  { title: 'The badge appears', text: 'The listing shows the Verified badge until its renewal date. It is rechecked at renewal and returns to Basic if not renewed.' },
+];

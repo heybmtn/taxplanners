@@ -11,10 +11,10 @@ if (!process.argv.includes('--no-build')) execSync(`npx astro build`, { stdio: '
 
 const server = await serve(out);
 const base = `http://127.0.0.1:${server.address().port}`;
-// Home, the city of the first listing, and that listing.
+// Home, search, the city of the first listing, that listing, and pricing.
 const first = JSON.parse(readFileSync(`${out}/data/listings.json`, 'utf8')).listings[0];
 const path = (u) => new URL(u).pathname;
-const pages = ['/', path(first.url).split('/').slice(0, -2).join('/') + '/', path(first.url), ...process.argv.slice(2).filter((a) => a.startsWith('/'))];
+const pages = ['/', '/search/', path(first.url).split('/').slice(0, -2).join('/') + '/', path(first.url), '/listing-plans/', ...process.argv.slice(2).filter((a) => a.startsWith('/'))];
 const chromePath = process.env.CHROME_PATH ?? ['/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].find(existsSync);
 const chrome = await chromeLauncher.launch({ chromePath, chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu'] });
 mkdirSync('lighthouse-reports', { recursive: true });

@@ -1,0 +1,35 @@
+---
+// Shows only what actually happened for this listing, from its data file.
+import type { Entry } from '../lib/data.ts';
+import VerifiedBadge from './VerifiedBadge.astro';
+import Icon from './Icon.astro';
+import { copy, formUrl } from '../lib/copy.ts';
+import { formatDate, monthYear } from '../lib/format.ts';
+interface Props { l: Entry }
+const { l } = Astro.props;
+const v = l.verification ?? {};
+const verified = l.tierNow === 'verified';
+---
+{verified ? (
+  <section class="panel panel-verified" aria-labelledby="verification-title">
+    <h2 id="verification-title" style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">Verification <VerifiedBadge /></h2>
+    <ul class="check-list">
+      <li><Icon name="check-circle" /><span>Business details confirmed by the owner{v.businessConfirmed && <> in {monthYear(v.businessConfirmed)}</>}</span></li>
+      <li><Icon name="check-circle" /><span>Credentials checked{v.credentialsChecked && <> in {monthYear(v.credentialsChecked)}</>}{v.credentialSource && <> with {v.credentialSource}</>}</span></li>
+      {l.verifiedUntil && <li><Icon name="calendar" /><span>{copy.badge} until {formatDate(l.verifiedUntil)}</span></li>}
+      <li><Icon name="clock" /><span>Details last updated {formatDate(l.lastUpdated)}</span></li>
+    </ul>
+    <p class="small muted">Verified is not an endorsement or recommendation.</p>
+    <p class="small"><a href={`${formUrl}?listing=${l.slug}`}>{copy.verifiedCta}</a></p>
+  </section>
+) : (
+  <section class="panel" aria-labelledby="verification-title">
+    <h2 id="verification-title">Basic listing</h2>
+    <ul class="check-list">
+      <li class="no"><Icon name="minus" /><span>Not confirmed by the owner</span></li>
+      <li class="no"><Icon name="minus" /><span>Credentials not checked by us</span></li>
+      <li><Icon name="clock" /><span>Details from {l.source}, last updated {formatDate(l.lastUpdated)}</span></li>
+    </ul>
+    <p class="small"><a href={`${formUrl}?listing=${l.slug}`}>{copy.basicCta}</a></p>
+  </section>
+)}
