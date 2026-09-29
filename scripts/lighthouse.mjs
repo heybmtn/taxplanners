@@ -1,7 +1,7 @@
 // Builds a preview (with demo listings) into .lh-dist, serves it, and runs Lighthouse (mobile) on
 // home, a city page and a listing page. Fails if any category scores below 100.
 import { execSync } from 'node:child_process';
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
 import { serve } from './serve.mjs';
@@ -11,7 +11,10 @@ if (!process.argv.includes('--no-build')) execSync(`npx astro build`, { stdio: '
 
 const server = await serve(out);
 const base = `http://127.0.0.1:${server.address().port}`;
-const pages = ['/', '/tax-planners/texas/austin/', '/tax-planners/texas/austin/demo-tax-planner-1/', ...process.argv.slice(2).filter((a) => a.startsWith('/'))];
+// Home, the city of the first listing, and that listing.
+const first = JSON.parse(readFileSync(`${out}/data/listings.json`, 'utf8')).listings[0];
+const path = (u) => new URL(u).pathname;
+const pages = ['/', path(first.url).split('/').slice(0, -2).join('/') + '/', path(first.url), ...process.argv.slice(2).filter((a) => a.startsWith('/'))];
 const chromePath = process.env.CHROME_PATH ?? ['/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].find(existsSync);
 const chrome = await chromeLauncher.launch({ chromePath, chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu'] });
 mkdirSync('lighthouse-reports', { recursive: true });
