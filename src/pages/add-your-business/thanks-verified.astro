@@ -1,0 +1,12 @@
+---
+import Base from '../../layouts/Base.astro';
+import site from '../../../site.config.ts';
+import { payLabel, paymentLink, isMailto, payEmail } from '../../lib/copy.ts';
+// The Worker rewrites the pay link to include the business name when the provider supports a reference.
+---
+<Base title={`Thanks: next, pay for Verified | ${site.name}`} description="Your Verified request was sent." path="/add-your-business/thanks-verified/" noindex twin={false}>
+  <h1>Thanks, we have your Verified request</h1>
+  <p>Your listing will be added or updated as Basic first. To get the Verified label, pay <strong>{site.verifiedPrice}</strong>{isMailto && <> (email {payEmail} and we'll send an invoice)</>}.</p>
+  <p><a id="pay" class="btn btn-primary" href={paymentLink()}>{payLabel}</a></p>
+  <p>Before the Verified label appears, we will contact you to confirm you own or work for the business and {site.credentialCheck}. If the check fails we refund you and the listing stays Basic.</p>
+</Base>

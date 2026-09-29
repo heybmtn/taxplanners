@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import Faqs from '../components/Faqs.astro';
+import site from '../../site.config.ts';
+import { loadData } from '../lib/data.ts';
+import { taxonomies } from '../lib/pages.ts';
+import { faqLd, homeLd } from '../lib/seo.ts';
+import { plural } from '../lib/format.ts';
+import { copy, plansUrl, formUrl } from '../lib/copy.ts';
+
+const { regions, terms, published } = await loadData();
+const taxes = taxonomies(terms);
+const faqs = [...site.homeFaqs, { q: 'How are listings ordered here?', a: `${copy.ordering} ${copy.disclosure}` }];
+const n = published.length;
+---
+<Base title={`${site.name}: find ${site.entity.article} ${site.entity.singular} near you`} description={site.description} path="/" isHome jsonld={[...homeLd(), faqLd(faqs)]}>
+  <h1>Find {site.entity.article} {site.entity.singular} near you</h1>
+  <p class="muted">{site.tagline} {n > 0 && `${n} ${plural(n)} listed in ${regions.length} ${regions.length === 1 ? site.regionWord : `${site.regionWord}s`}.`}</p>
+
+  <h2>Browse by {site.regionWord}</h2>
+  {regions.length === 0 ? <p>No listings yet. <a href={formUrl}>Add the first {site.entity.singular}</a>.</p> : (
+    <ul class="grid-links">
+      {regions.map((r) => <li><a href={r.url}>{r.name} <span>{r.listings.length}</span></a></li>)}
+    </ul>
+  )}
+  {regions.flatMap((r) => r.cities).length > 0 && (
+    <>
+      <h2>Cities</h2>
+      <ul class="grid-links">
+        {regions.flatMap((r) => r.cities.map((c) => ({ c, r }))).map(({ c, r }) => <li><a href={c.url}>{c.name}, {r.abbr} <span>{c.listings.length}</span></a></li>)}
+      </ul>
+    </>
+  )}
+
+  {taxes.map((t) => (
+    <>
+      <h2>{t.title}</h2>
+      <ul class="grid-links">{t.terms.map((term) => <li><a href={term.url}>{term.label} <span>{term.listings.length}</span></a></li>)}</ul>
+    </>
+  ))}
+
+  <h2>How listings work</h2>
+  <p>{copy.basicDefinition}</p>
+  <p>{copy.verifiedDefinition}</p>
+  <p class="disclosure">{copy.disclosure} <a href={plansUrl}>{copy.disclosureLink}</a></p>
+
+  <Faqs faqs={faqs} />
+  <p class="muted small">Sources: {site.sources.map((s, i) => <>{i > 0 && ' · '}<a href={s.url}>{s.name}</a></>)}</p>
+</Base>

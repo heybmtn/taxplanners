@@ -1,0 +1,72 @@
+---
+// Static form. The Worker fills in ?listing= and ?tier=verified with HTMLRewriter (no client JS).
+import Base from '../../layouts/Base.astro';
+import site from '../../../site.config.ts';
+import { attributeDefs, weekdays } from '../../lib/schema.ts';
+import { dayNames } from '../../lib/format.ts';
+import { plansUrl } from '../../lib/copy.ts';
+
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || site.turnstileSiteKey || (import.meta.env.DEV ? '1x00000000000000000000AA' : '');
+const e = site.entity;
+---
+<Base title={`Add or update a ${e.singular} listing | ${site.name}`} description={`Add your ${e.singular} to ${site.name} for free, send a correction, or request a Verified listing.`} path="/add-your-business/" crumbs={[{ name: 'Home', url: '/' }, { name: 'Add your business', url: '/add-your-business/' }]}>
+  <script is:inline slot="head" src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <h1>Add or update a listing</h1>
+  <p class="muted">Basic listings are free; Verified is paid. <a href={plansUrl}>Compare listing plans</a>.</p>
+  <p id="update-note" hidden></p>
+  <form method="post" action="/add-your-business/">
+    <input type="hidden" name="listing" value="" />
+    <fieldset class="tier-cards">
+      <legend>Listing plan</legend>
+      <label class="tier-card"><input type="radio" name="tier" value="basic" checked /> <span><strong>Basic (free)</strong> Listed with the details you send, marked with the date they were last updated.</span></label>
+      <label class="tier-card"><input type="radio" name="tier" value="verified" /> <span><strong>Verified ({site.verifiedPrice})</strong> Owners and staff only. We check the credential and confirm the details with you before the label appears.</span></label>
+    </fieldset>
+
+    <div class="field"><label for="f-name">Business name</label><input id="f-name" type="text" name="name" required maxlength="120" autocomplete="organization" /></div>
+    <div class="field"><label for="f-street">Street address</label><input id="f-street" type="text" name="street" maxlength="200" autocomplete="address-line1" /></div>
+    <div class="field"><label for="f-locality">City</label><input id="f-locality" type="text" name="locality" required maxlength="80" autocomplete="address-level2" /></div>
+    <div class="field"><label for="f-region">{site.regionWord[0].toUpperCase() + site.regionWord.slice(1)}</label><input id="f-region" type="text" name="region" required maxlength="40" autocomplete="address-level1" /></div>
+    <div class="field"><label for="f-postal">Postal code</label><input id="f-postal" type="text" name="postalCode" maxlength="12" autocomplete="postal-code" /></div>
+    <div class="field"><label for="f-phone">Phone</label><input id="f-phone" type="tel" name="phone" maxlength="40" autocomplete="tel" /></div>
+    <div class="field"><label for="f-website">Website</label><input id="f-website" type="url" name="website" maxlength="300" placeholder="https://" /></div>
+    <div class="field"><label for="f-sameas">Social links <span class="hint">(one per line)</span></label><textarea id="f-sameas" name="sameAs" rows="2" maxlength="1000"></textarea></div>
+
+    <details>
+      <summary>More details (optional)</summary>
+      <fieldset>
+        <legend>Hours</legend>
+        <p class="hint">For example "9:00-17:00" or "closed".</p>
+        {weekdays.map((d) => <div class="field"><label for={`f-h-${d}`}>{dayNames[d]}</label><input id={`f-h-${d}`} type="text" name={`hours_${d}`} maxlength="40" /></div>)}
+      </fieldset>
+      {Object.entries(attributeDefs).map(([key, def]) =>
+        def.type === 'multi' ? (
+          <fieldset><legend>{def.label}</legend>{Object.entries(def.options).map(([k, label]) => <label class="check"><input type="checkbox" name={key} value={k} /> {label}</label>)}</fieldset>
+        ) : def.type === 'bool' ? (
+          <label class="check"><input type="checkbox" name={key} value="yes" /> {def.label}</label>
+        ) : (
+          <div class="field"><label for={`f-${key}`}>{def.label} <span class="hint">(comma separated)</span></label><input id={`f-${key}`} type="text" name={key} maxlength="200" /></div>
+        ),
+      )}
+    </details>
+
+    <div class="field"><label for="f-desc">Short description</label><textarea id="f-desc" name="description" rows="4" maxlength="1200"></textarea></div>
+
+    <fieldset>
+      <legend>About you (never published)</legend>
+      <div class="field"><label for="f-sname">Your name</label><input id="f-sname" type="text" name="submitterName" required maxlength="100" autocomplete="name" /></div>
+      <div class="field"><label for="f-semail">Your email</label><input id="f-semail" type="email" name="submitterEmail" required maxlength="200" autocomplete="email" /></div>
+      <div class="field"><label for="f-rel">Your relationship to the business</label>
+        <select id="f-rel" name="relationship" required>
+          <option value="owner">Owner</option>
+          <option value="staff">Staff</option>
+          <option value="customer">Customer or other</option>
+        </select>
+      </div>
+    </fieldset>
+    <div class="hp" aria-hidden="true"><label for="f-hp">Leave this empty</label><input id="f-hp" type="text" name="company_url" tabindex="-1" autocomplete="off" /></div>
+    <label class="check"><input type="checkbox" name="consent" value="yes" required /> I confirm these details are accurate and agree to be contacted about this listing.</label>
+    {siteKey ? <div class="cf-turnstile" data-sitekey={siteKey}></div> : <p class="hint">Spam protection is not configured yet; submissions will fail until it is.</p>}
+    <p><button class="btn btn-primary" type="submit">Send listing details</button></p>
+  </form>
+  <p class="muted small">Your submission is emailed to us and not stored. See <a href="/privacy/">privacy</a>.</p>
+</Base>

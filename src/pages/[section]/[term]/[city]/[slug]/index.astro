@@ -1,0 +1,67 @@
+---
+import Base from '../../../../../layouts/Base.astro';
+import Faqs from '../../../../../components/Faqs.astro';
+import site from '../../../../../../site.config.ts';
+import { loadData, nearby, type City, type Entry, type Region } from '../../../../../lib/data.ts';
+import { listingPage } from '../../../../../lib/pages.ts';
+import { listingLd, faqLd } from '../../../../../lib/seo.ts';
+import { factRows, formatDate, hasHours, hoursRows, listingFaqs, mapsUrl } from '../../../../../lib/format.ts';
+import { copy, formUrl } from '../../../../../lib/copy.ts';
+
+export async function getStaticPaths() {
+  const { all, regions, published } = await loadData();
+  const paths = [];
+  for (const l of all) {
+    const region = regions.find((r) => r.slug === l.region);
+    const city = region?.cities.find((c) => c.slug === l.city);
+    // Closed listings whose city has no published listings get no page.
+    if (!region || !city) continue;
+    paths.push({ params: { section: site.hub, term: l.region, city: l.city, slug: l.slug }, props: { l, region, city, near: nearby(l, published) } });
+  }
+  return paths;
+}
+const { l, region, city, near } = Astro.props as { l: Entry; region: Region; city: City; near: Entry[] };
+const page = listingPage(l, city, region);
+const verified = l.tierNow === 'verified';
+const faqs = listingFaqs(l);
+const rows = factRows(l);
+---
+<Base title={page.title} description={page.description} path={page.path} noindex={page.noindex} crumbs={page.crumbs} jsonld={[listingLd(l, verified), faqLd(faqs)]}>
+  <h1>{l.name}{verified && <span class="badge">{copy.badge}</span>}</h1>
+  {l.status === 'closed' && <p class="disclosure"><strong>Permanently closed.</strong> Kept for reference.</p>}
+  <p>{l.summary}</p>
+  {verified && l.description && <p>{l.description}</p>}
+  {verified && l.bookingUrl && <p><a class="btn btn-primary" href={l.bookingUrl}>Book with {l.name}</a></p>}
+
+  <h2>Details</h2>
+  <table>
+    <tbody>
+      {rows.map((r) => (
+        <tr><th scope="row">{r.label}</th><td>{r.value === null ? <span class="muted">Not listed</span> : r.href ? <a href={r.href}>{r.value}</a> : r.value}</td></tr>
+      ))}
+    </tbody>
+  </table>
+  <p><a class="tap" href={mapsUrl(l)}>Open {l.name} in Google Maps</a></p>
+
+  <h2>Hours</h2>
+  {hasHours(l) ? (
+    <table><tbody>{hoursRows(l).map((h) => <tr><th scope="row">{h.day}</th><td>{h.text}</td></tr>)}</tbody></table>
+  ) : <p class="muted">Hours not listed. Call before visiting.</p>}
+
+  <Faqs faqs={faqs} />
+
+  {near.length > 0 && (
+    <section aria-labelledby="nearby">
+      <h2 id="nearby">Nearby {site.entity.plural}</h2>
+      <ul>{near.map((n) => <li><a class="tap" href={n.url}>{n.name}</a>, {n.address.locality}</li>)}</ul>
+      <p><a href={city.url}>All {site.entity.plural} in {city.name}</a></p>
+    </section>
+  )}
+
+  <p class="muted">Last updated {formatDate(l.lastUpdated)}. Source: {l.source}.</p>
+  {verified ? (
+    <p><strong>{copy.verifiedNote}</strong>. <a href={`${formUrl}?listing=${l.slug}`}>{copy.verifiedCta}</a></p>
+  ) : (
+    <p><a href={`${formUrl}?listing=${l.slug}`}>{copy.basicCta}</a></p>
+  )}
+</Base>

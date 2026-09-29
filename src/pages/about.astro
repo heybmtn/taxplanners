@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../../site.config.ts';
+import { copy, plansUrl, formUrl } from '../lib/copy.ts';
+---
+<Base title={`About ${site.name} and our sources`} description={`Who runs ${site.name}, where listing details come from, and what Basic and Verified listings mean.`} path="/about/" crumbs={[{ name: 'Home', url: '/' }, { name: 'About', url: '/about/' }]}>
+  <h1>About {site.name}</h1>
+  <p>{site.operator}</p>
+  <h2>How listings are sourced</h2>
+  <p>Listing details come from public sources (the business's own website and public registers) or from submissions through our <a href={formUrl}>form</a>. Each listing shows the date its details were last checked or changed, and where they came from. We never invent businesses, hours, prices, reviews or ratings, and we publish no ratings or reviews at all.</p>
+  <p>Useful public sources: {site.sources.map((s, i) => <>{i > 0 && ', '}<a href={s.url}>{s.name}</a></>)}.</p>
+  <h2 id="listings">Basic and Verified listings</h2>
+  <p>{copy.basicDefinition}</p>
+  <p>{copy.verifiedDefinition}</p>
+  <p>Before we mark a listing Verified, {site.credentialCheck}, and we confirm with the owner that they run the business and that the details are right. Verified listings are paid and listed first. {copy.ordering} See <a href={plansUrl}>listing plans</a>.</p>
+  <h2>Corrections</h2>
+  <p>Anyone can send a correction with the <a href={formUrl}>form</a>. We take no referral fees and nothing on this site is a recommendation.</p>
+</Base>

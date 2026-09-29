@@ -1,0 +1,16 @@
+---
+import type { Entry } from '../lib/data.ts';
+import { copy } from '../lib/copy.ts';
+import { cardFacts } from '../lib/format.ts';
+interface Props { l: Entry; showCity?: boolean }
+const { l, showCity = false } = Astro.props;
+const facts = cardFacts(l);
+---
+<li class:list={['card', { 'is-verified': l.tierNow === 'verified' }]}>
+  <h3><a href={l.url}>{l.name}</a>{l.tierNow === 'verified' && <span class="badge">{copy.badge}</span>}</h3>
+  <p>{l.summary}</p>
+  <ul class="facts-inline">
+    {showCity && <li>{l.address.locality}, {l.address.region}</li>}
+    {facts.map((f) => <li>{f}</li>)}
+  </ul>
+</li>

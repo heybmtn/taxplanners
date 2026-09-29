@@ -1,0 +1,87 @@
+---
+import '../theme.css';
+import '../styles/global.css';
+import site from '../../site.config.ts';
+import { copy, formUrl, plansUrl } from '../lib/copy.ts';
+import { abs, breadcrumbLd, type Crumb } from '../lib/seo.ts';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  noindex?: boolean;
+  jsonld?: object[];
+  crumbs?: Crumb[];
+  /** Markdown twin path (defaults to {path}index.md). false = none. */
+  twin?: string | false;
+  isHome?: boolean;
+}
+const { title, description, path, noindex = false, jsonld = [], crumbs, twin, isHome = false } = Astro.props;
+const canonical = abs(path);
+const twinPath = twin === false ? null : (twin ?? `${path}index.md`);
+const ld = [...jsonld, ...(crumbs ? [breadcrumbLd(crumbs)] : [])];
+---
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    {twinPath && <link rel="alternate" type="text/markdown" href={twinPath} title="Markdown version" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {ld.map((j) => <script type="application/ld+json" is:inline set:html={JSON.stringify(j)} />)}
+    <slot name="head" />
+  </head>
+  <body>
+    {isHome && (
+      <div class="banner">
+        This domain is for sale. <a href={site.forSaleContact}>Contact us about buying {site.domain}</a>
+      </div>
+    )}
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/">{site.name}</a>
+        <nav aria-label="Main">
+          <a href={`/${site.hub}/`}>Browse by {site.regionWord}</a>
+          <a href={plansUrl}>Listing plans</a>
+          <a href={formUrl}>Add your business</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="wrap">
+      {crumbs && (
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <ol>
+            {crumbs.map((c, i) => (
+              <li>{i === crumbs.length - 1 ? <span aria-current="page">{c.name}</span> : <a href={c.url}>{c.name}</a>}</li>
+            ))}
+          </ol>
+        </nav>
+      )}
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <ul>
+          <li><a href="/about/">About and sources</a></li>
+          <li><a href="/privacy/">Privacy</a></li>
+          <li><a href={formUrl}>Add or update a listing</a></li>
+          <li><a href={plansUrl}>Listing plans</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+        </ul>
+        <p>{copy.footer}</p>
+      </div>
+    </footer>
+  </body>
+</html>

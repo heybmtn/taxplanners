@@ -1,0 +1,81 @@
+{
+  "status": "published",
+  "tier": "verified",
+  "demo": true,
+  "address": {
+    "street": null,
+    "locality": "Austin",
+    "region": "TX",
+    "postalCode": "78701",
+    "country": "US"
+  },
+  "lat": null,
+  "lng": null,
+  "phone": "+1 555 0100",
+  "website": "https://example.com/",
+  "sameAs": [],
+  "source": "demo data",
+  "lastUpdated": "2026-09-29",
+  "name": "Demo Tax Planner 1",
+  "slug": "demo-tax-planner-1",
+  "verifiedUntil": "2027-09-29",
+  "summary": "Demo Tax Planner 1 is a sample listing used to preview the site. It is not a real business.",
+  "hours": {
+    "monday": [
+      {
+        "opens": "09:00",
+        "closes": "17:00"
+      }
+    ],
+    "tuesday": [
+      {
+        "opens": "09:00",
+        "closes": "17:00"
+      }
+    ],
+    "wednesday": [
+      {
+        "opens": "09:00",
+        "closes": "17:00"
+      }
+    ],
+    "thursday": [
+      {
+        "opens": "09:00",
+        "closes": "17:00"
+      }
+    ],
+    "friday": [
+      {
+        "opens": "09:00",
+        "closes": "15:00"
+      }
+    ],
+    "saturday": null,
+    "sunday": null
+  },
+  "attributes": {
+    "credentials": [
+      "cpa",
+      "enrolled-agent"
+    ],
+    "services": [
+      "tax-planning",
+      "tax-preparation",
+      "business-tax"
+    ],
+    "clients": [
+      "small-business",
+      "self-employed"
+    ],
+    "virtual": true,
+    "freeConsultation": true,
+    "yearRound": true,
+    "languages": [
+      "English",
+      "Spanish"
+    ]
+  },
+  "description": "Sample owner description for the demo Verified listing. Replace with the owner-supplied text.",
+  "bookingUrl": "https://example.com/book"
+}
