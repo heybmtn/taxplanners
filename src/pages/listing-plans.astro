@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import site from '../../site.config.ts';
+import { plans } from '../lib/plans.ts';
+import { faqLd } from '../lib/seo.ts';
+import { payLabel, paymentLink } from '../lib/copy.ts';
+---
+<Base title={`Listing plans: Basic or Verified | ${site.name}`} description={`Free Basic listings for every ${site.entity.singular}, or Verified for ${site.verifiedPrice}: credential check, owner confirmation, the Verified label and a place above Basic.`} path="/listing-plans/" crumbs={[{ name: 'Home', url: '/' }, { name: 'Listing plans', url: '/listing-plans/' }]} jsonld={[faqLd(plans.faqs)]}>
+  <h1>{plans.h1}</h1>
+  <p class="muted">{plans.intro}</p>
+  <div class="plans">
+    <section class="plan" aria-labelledby="plan-basic">
+      <h2 id="plan-basic">Basic</h2>
+      <p class="price">Free</p>
+      <ul>{plans.basic.map((b) => <li>{b}</li>)}</ul>
+    </section>
+    <section class="plan is-verified" aria-labelledby="plan-verified">
+      <h2 id="plan-verified">Verified</h2>
+      <p class="price">{site.verifiedPrice}</p>
+      <ul>{plans.verified.map((b) => <li>{b}</li>)}</ul>
+    </section>
+  </div>
+  <h2>How to get a Verified listing</h2>
+  <ol>{plans.steps.map((s) => <li>{s}</li>)}</ol>
+  <div class="buttons">
+    <a class="btn btn-primary" href={plans.sendUrl}>{plans.sendLabel}</a>
+    <a class="btn btn-secondary" href={paymentLink()}>{payLabel}</a>
+  </div>
+  <h2>Questions</h2>
+  {plans.faqs.map((f) => (<><h3>{f.q}</h3><p>{f.a}</p></>))}
+</Base>

@@ -1,0 +1,20 @@
+---
+import type { Entry } from '../lib/data.ts';
+import { bestFor } from '../lib/format.ts';
+interface Props { listings: Entry[]; place: string }
+const groups = bestFor(Astro.props.listings);
+---
+{groups.length > 0 && (
+  <section aria-labelledby="best-for">
+    <h2 id="best-for">Best for, in {Astro.props.place}</h2>
+    <p class="muted small">Built from each listing's own details. Not a ranking.</p>
+    <dl>
+      {groups.map((g) => (
+        <>
+          <dt><strong>{g.label}</strong> ({g.listings.length})</dt>
+          <dd>{g.listings.map((l, i) => <>{i > 0 && ', '}<a href={l.url}>{l.name}</a></>)}</dd>
+        </>
+      ))}
+    </dl>
+  </section>
+)}

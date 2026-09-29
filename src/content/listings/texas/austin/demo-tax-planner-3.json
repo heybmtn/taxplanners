@@ -1,0 +1,37 @@
+{
+  "status": "published",
+  "tier": "basic",
+  "demo": true,
+  "address": {
+    "street": null,
+    "locality": "Austin",
+    "region": "TX",
+    "postalCode": "78701",
+    "country": "US"
+  },
+  "lat": null,
+  "lng": null,
+  "phone": null,
+  "website": null,
+  "sameAs": [],
+  "source": "demo data",
+  "lastUpdated": "2026-09-29",
+  "name": "Demo Tax Planner 3",
+  "slug": "demo-tax-planner-3",
+  "summary": "Demo Tax Planner 3 is a sample Basic listing used to preview the site. It is not a real business.",
+  "attributes": {
+    "credentials": [
+      "cpa"
+    ],
+    "services": [
+      "tax-planning",
+      "estate-trust"
+    ],
+    "clients": [
+      "individuals",
+      "high-income"
+    ],
+    "inPerson": true,
+    "wheelchairAccessible": true
+  }
+}

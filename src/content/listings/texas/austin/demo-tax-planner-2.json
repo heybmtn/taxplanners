@@ -1,0 +1,35 @@
+{
+  "status": "published",
+  "tier": "verified",
+  "demo": true,
+  "address": {
+    "street": null,
+    "locality": "Austin",
+    "region": "TX",
+    "postalCode": "78701",
+    "country": "US"
+  },
+  "lat": null,
+  "lng": null,
+  "phone": null,
+  "website": null,
+  "sameAs": [],
+  "source": "demo data",
+  "lastUpdated": "2026-09-29",
+  "name": "Demo Tax Planner 2",
+  "slug": "demo-tax-planner-2",
+  "verifiedUntil": "2025-01-31",
+  "summary": "Demo Tax Planner 2 is a sample listing whose paid period has expired, so it shows as Basic.",
+  "attributes": {
+    "credentials": [
+      "enrolled-agent"
+    ],
+    "services": [
+      "tax-planning",
+      "irs-representation"
+    ],
+    "virtual": true
+  },
+  "description": "This text must not render: the listing has expired.",
+  "bookingUrl": "https://example.com/expired"
+}

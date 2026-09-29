@@ -1,0 +1,32 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import ListingList from '../../../../components/ListingList.astro';
+import BestFor from '../../../../components/BestFor.astro';
+import site from '../../../../../site.config.ts';
+import { loadData, type City, type Region } from '../../../../lib/data.ts';
+import { cityPage } from '../../../../lib/pages.ts';
+import { itemListLd } from '../../../../lib/seo.ts';
+import { plural } from '../../../../lib/format.ts';
+
+export async function getStaticPaths() {
+  const { regions } = await loadData();
+  return regions.flatMap((r) => r.cities.map((c) => ({ params: { section: site.hub, term: r.slug, city: c.slug }, props: { region: r, city: c } })));
+}
+const { region, city } = Astro.props as { region: Region; city: City };
+const page = cityPage(city, region);
+const n = city.listings.length;
+const verifiedCount = city.listings.filter((l) => l.tierNow === 'verified').length;
+const others = region.cities.filter((c) => c.slug !== city.slug);
+---
+<Base title={page.title} description={page.description} path={page.path} noindex={page.noindex} crumbs={page.crumbs} jsonld={[itemListLd(page.h1, city.listings)]}>
+  <h1>{page.h1}</h1>
+  <p>{city.intro ?? `${n} ${plural(n)} listed in ${city.name}, ${region.name}${verifiedCount ? `, ${verifiedCount} of them Verified` : ''}. Each listing shows its ${site.factsPhrase} as last updated.`}</p>
+  <ListingList listings={city.listings} />
+  <BestFor listings={city.listings} place={city.name} />
+  {others.length > 0 && (
+    <section aria-labelledby="nearby">
+      <h2 id="nearby">Other cities in {region.name}</h2>
+      <ul class="grid-links">{others.map((c) => <li><a href={c.url}>{c.name} <span>{c.listings.length}</span></a></li>)}</ul>
+    </section>
+  )}
+</Base>
