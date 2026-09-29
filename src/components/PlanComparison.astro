@@ -1,0 +1,19 @@
+---
+import { comparison } from '../lib/plans.ts';
+import site from '../../site.config.ts';
+---
+<div class="compare-wrap" role="region" aria-labelledby="compare-title" tabindex="0">
+  <table class="compare">
+    <caption id="compare-title" class="visually-hidden">Basic and Verified listings compared</caption>
+    <thead><tr><th scope="col">Feature</th><th scope="col">Basic<br /><span class="small muted">Free</span></th><th scope="col">Verified<br /><span class="small muted">{site.verifiedPrice}</span></th></tr></thead>
+    <tbody>
+      {comparison.map((r) => (
+        <tr>
+          <th scope="row">{r.feature}</th>
+          <td class={r.basic ? 'yes' : 'no'}>{r.basic ? <><span aria-hidden="true">✓</span><span class="visually-hidden">Included</span></> : <><span aria-hidden="true">—</span><span class="visually-hidden">Not included</span></>}</td>
+          <td class={r.verified ? 'yes' : 'no'}>{r.verified ? <><span aria-hidden="true">✓</span><span class="visually-hidden">Included</span></> : <><span aria-hidden="true">—</span><span class="visually-hidden">Not included</span></>}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

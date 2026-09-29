@@ -3,12 +3,14 @@ import Base from '../layouts/Base.astro';
 import site from '../../site.config.ts';
 ---
 <Base title={`Privacy | ${site.name}`} description={`How ${site.name} handles your data: no cookies, no analytics, and form submissions sent by email only.`} path="/privacy/" crumbs={[{ name: 'Home', url: '/' }, { name: 'Privacy', url: '/privacy/' }]}>
+  <div class="wrap prose" style="padding-top:1.5rem">
   <h1>Privacy</h1>
   <p>{site.name} sets no cookies and runs no analytics or advertising scripts.</p>
   <h2>The listing form</h2>
-  <p>When you send the form, your submission is emailed to us and not stored in a database. We use your name and email only to reply about the listing. We never publish your personal contact details; only the business details appear on the site. The form uses Cloudflare Turnstile to block spam, which processes technical data about your browser under <a href="https://www.cloudflare.com/turnstile-privacy-policy/">Cloudflare's Turnstile privacy terms</a>.</p>
+  <p>When you send the form, your submission is emailed to us and not stored in a database. To block spam we check a short-lived signed token, count recent submissions per IP address for a few minutes, and briefly remember a fingerprint of each submission to prevent duplicates; none of this is kept longer than a day. We use your name and email only to reply about the listing. We never publish your personal contact details; only the business details appear on the site. If Cloudflare Turnstile is enabled on the form, it processes technical data about your browser under <a href="https://www.cloudflare.com/turnstile-privacy-policy/">Cloudflare's Turnstile privacy terms</a>.</p>
   <h2>Hosting</h2>
   <p>The site is hosted on Cloudflare, which processes standard request logs (such as IP addresses) to deliver and protect the site.</p>
   <h2>Contact</h2>
   <p>Email <a href={`mailto:${site.submissionsEmail}`}>{site.submissionsEmail}</a> to ask about or remove data about you or your business.</p>
+  </div>
 </Base>

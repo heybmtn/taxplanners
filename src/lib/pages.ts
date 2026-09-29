@@ -2,7 +2,7 @@
 // HTML routes, markdown twins and data files all read from here.
 import site from '../../site.config.ts';
 import { attributeDefs } from './schema.ts';
-import { hubUrl, isIndexable, loadData, type City, type Entry, type Region, type Term } from './data.ts';
+import { hubUrl, isIndexable, loadData, type City, type Entry, type Facet, type Region, type Term } from './data.ts';
 import { cap, monthYear, plural } from './format.ts';
 import { today } from './tier.ts';
 import type { Crumb } from './seo.ts';
@@ -45,6 +45,20 @@ export function listingPage(l: Entry, c: City, r: Region) {
     h1: l.name,
     noindex: l.status === 'closed',
     crumbs: [home, hubCrumb, { name: r.name, url: r.url }, { name: c.name, url: c.url }, { name: l.name, url: l.url }],
+  };
+}
+
+export function facetPage(f: Facet, c: City, r: Region) {
+  const n = f.listings.length;
+  const where = `${c.name}, ${r.abbr}`;
+  return {
+    path: f.url,
+    title: `${f.heading} (${n} listed) | ${site.name}`,
+    description: clip(`${n} ${plural(n)} in ${where} listing ${f.label.toLowerCase()}. Compare ${site.factsPhrase}.`),
+    h1: f.heading,
+    intro: `${n} of the ${c.listings.length} ${plural(c.listings.length)} listed in ${where} list ${f.label.toLowerCase()}. Compare their ${site.factsPhrase} below.`,
+    noindex: !isIndexable(n),
+    crumbs: [home, hubCrumb, { name: r.name, url: r.url }, { name: c.name, url: c.url }, { name: f.label, url: f.url }],
   };
 }
 

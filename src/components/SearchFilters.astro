@@ -1,0 +1,52 @@
+---
+// Filter panel: a sidebar on wide screens, a modal drawer (<dialog>) on phones.
+// Field names match src/lib/search.ts; the Worker ticks the boxes that match the URL.
+import site from '../../site.config.ts';
+import { attributeDefs } from '../lib/schema.ts';
+import type { Region } from '../lib/data.ts';
+import Icon from './Icon.astro';
+interface Props { regions: Region[]; languages: string[] }
+const { regions, languages } = Astro.props;
+const multis = Object.entries(attributeDefs).filter(([, d]) => d.type === 'multi') as [string, { label: string; options: Record<string, string> }][];
+---
+<dialog id="filters" class="filters" aria-labelledby="filters-title">
+  <div class="filters-head">
+    <h2 id="filters-title">Filters</h2>
+    <button type="button" class="btn btn-ghost btn-sm close-filters" commandfor="filters" command="close"><Icon name="x" /><span>Close</span></button>
+  </div>
+  <div class="filters-inner">
+    <fieldset>
+      <legend>Verification</legend>
+      <label class="check"><input type="checkbox" name="verified" value="1" /> Verified only</label>
+    </fieldset>
+    {regions.length > 0 && (
+      <div class="field">
+        <label for="f-state">{site.regionWord[0].toUpperCase() + site.regionWord.slice(1)}</label>
+        <select id="f-state" name="state">
+          <option value="">All {site.regionWord}s</option>
+          {regions.map((r) => <option value={r.slug} data-state>{r.name}</option>)}
+        </select>
+      </div>
+    )}
+    {multis.map(([attr, def]) => (
+      <fieldset>
+        <legend>{def.label}</legend>
+        {Object.entries(def.options).map(([k, label]) => <label class="check"><input type="checkbox" name={attr} value={k} /> {label}</label>)}
+      </fieldset>
+    ))}
+    <fieldset>
+      <legend>Meeting format</legend>
+      {Object.entries(site.meetingFormats).map(([k, label]) => <label class="check"><input type="checkbox" name="meeting" value={k} /> {label}</label>)}
+    </fieldset>
+    {languages.length > 0 && (
+      <fieldset>
+        <legend>Languages</legend>
+        {languages.map((lang) => <label class="check"><input type="checkbox" name="languages" value={lang} /> {lang}</label>)}
+      </fieldset>
+    )}
+  </div>
+  <div class="filters-foot">
+    <a class="btn btn-ghost" href="/search/">Clear all</a>
+    <button type="submit" class="btn btn-primary">Show results</button>
+  </div>
+</dialog>

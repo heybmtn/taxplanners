@@ -1,16 +1,37 @@
 ---
+// Scannable result card. Shows only fields the listing actually has.
 import type { Entry } from '../lib/data.ts';
-import { copy } from '../lib/copy.ts';
-import { cardFacts } from '../lib/format.ts';
-interface Props { l: Entry; showCity?: boolean }
-const { l, showCity = false } = Astro.props;
-const facts = cardFacts(l);
+import VerifiedBadge from './VerifiedBadge.astro';
+import CredentialBadges from './CredentialBadges.astro';
+import Icon from './Icon.astro';
+import { meetingText, optionLabels } from '../lib/format.ts';
+interface Props { l: Entry; headingLevel?: 2 | 3 }
+const { l, headingLevel = 3 } = Astro.props;
+const H = headingLevel === 2 ? 'h2' : 'h3';
+const verified = l.tierNow === 'verified';
+const clients = optionLabels(l, 'clients', true);
+const services = optionLabels(l, 'services');
+const meeting = meetingText(l);
 ---
-<li class:list={['card', { 'is-verified': l.tierNow === 'verified' }]}>
-  <h3><a href={l.url}>{l.name}</a>{l.tierNow === 'verified' && <span class="badge">{copy.badge}</span>}</h3>
-  <p>{l.summary}</p>
-  <ul class="facts-inline">
-    {showCity && <li>{l.address.locality}, {l.address.region}</li>}
-    {facts.map((f) => <li>{f}</li>)}
-  </ul>
+<li class="result" data-id={`${l.region}/${l.city}/${l.slug}`}>
+  <article class:list={['listing-card', { 'is-verified': verified }]} aria-labelledby={`t-${l.region}-${l.city}-${l.slug}`}>
+    <header>
+      <H id={`t-${l.region}-${l.city}-${l.slug}`}><a href={l.url}>{l.name}</a></H>
+      {verified && <VerifiedBadge />}
+    </header>
+    <p class="where"><Icon name="pin" />{l.address.locality}, {l.address.region}</p>
+    <CredentialBadges l={l} />
+    <p class="summary">{l.summary}</p>
+    {(clients.length > 0 || services.length > 0 || meeting) && (
+      <dl class="facts">
+        {clients.length > 0 && <div><dt>Works with</dt><dd>{clients.join(' · ')}</dd></div>}
+        {services.length > 0 && <div><dt>Services</dt><dd>{services.join(' · ')}</dd></div>}
+        {meeting && <div><dt>Meeting format</dt><dd>{meeting}</dd></div>}
+      </dl>
+    )}
+    <div class="actions">
+      <a class="btn btn-primary btn-sm" href={l.url}>View profile<span class="visually-hidden">: {l.name}</span></a>
+      {l.website && <a class="btn btn-ghost btn-sm" href={l.website} rel="noopener nofollow">Website<span class="visually-hidden"> of {l.name}</span></a>}
+    </div>
+  </article>
 </li>

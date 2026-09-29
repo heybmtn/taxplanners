@@ -1,0 +1,48 @@
+---
+// Search results. The static page holds every published listing; the Worker (src/worker.ts)
+// filters and paginates it per request from the URL, so search works without client JavaScript.
+import Base from '../layouts/Base.astro';
+import SearchBar from '../components/SearchBar.astro';
+import SearchFilters from '../components/SearchFilters.astro';
+import ListingCard from '../components/ListingCard.astro';
+import EmptyState from '../components/EmptyState.astro';
+import Icon from '../components/Icon.astro';
+import site from '../../site.config.ts';
+import { loadData } from '../lib/data.ts';
+import { plural } from '../lib/format.ts';
+import { copy, formUrl, plansUrl } from '../lib/copy.ts';
+
+const { published, regions, languages } = await loadData();
+const n = published.length;
+---
+<Base title={`Search ${site.entity.plural} | ${site.name}`} description={`Search and filter ${site.entity.plural} by location, credential, service, client type, meeting format, language and Verified status.`} path="/search/" noindex twin={false} crumbs={[{ name: 'Home', url: '/' }, { name: 'Search', url: '/search/' }]}>
+  <div class="wrap">
+    <div class="page-head">
+      <h1 id="search-title">Find {site.entity.article} {site.entity.singular}</h1>
+      <p class="muted">{site.heroCopy}</p>
+    </div>
+    {n === 0 ? (
+      <EmptyState icon="building" title="We're building the directory" text={`We're currently adding ${site.professional}s. If you're a ${site.professional}, you can add your business for free.`} actions={[{ label: 'List your business', href: formUrl, primary: true }]} />
+    ) : (
+      <form id="search-form" action="/search/" method="get" role="search" aria-labelledby="search-title">
+        <SearchBar compact wrapForm={false} idPrefix="s" />
+        <div class="search-layout" style="margin-top:1.5rem">
+          <SearchFilters regions={regions} languages={languages} />
+          <div>
+            <div class="results-bar">
+              <h2 id="result-count" aria-live="polite">{n} {plural(n)}</h2>
+              <button type="button" class="btn btn-ghost btn-sm filters-toggle" commandfor="filters" command="show-modal"><Icon name="filter" />Filters</button>
+            </div>
+            <ul id="active-filters" class="chips" aria-label="Active filters"></ul>
+            <p class="disclosure">{copy.disclosure} <a href={plansUrl}>{copy.disclosureLink}</a></p>
+            <ul class="results" id="results">
+              {published.map((l) => <ListingCard l={l} />)}
+            </ul>
+            <EmptyState id="no-results" hidden headingLevel={3} title={`No ${site.entity.plural} found`} text="Try expanding your location or removing one of your filters." actions={[{ label: 'Clear filters', href: '/search/', primary: true }, { label: `Browse all ${site.entity.plural}`, href: `/${site.hub}/` }]} />
+            <nav id="pagination" class="pagination" aria-label="Pages"></nav>
+          </div>
+        </div>
+      </form>
+    )}
+  </div>
+</Base>

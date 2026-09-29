@@ -1,0 +1,26 @@
+---
+// Location + "service or credential" search. Submits to /search/ (filtered server-side by the Worker).
+import site from '../../site.config.ts';
+import { attributeDefs } from '../lib/schema.ts';
+import Icon from './Icon.astro';
+interface Props { compact?: boolean; wrapForm?: boolean; idPrefix?: string }
+const { compact = false, wrapForm = true, idPrefix = 'sb' } = Astro.props;
+const groups = Object.entries(attributeDefs).filter(([, d]) => d.type === 'multi') as [string, { label: string; options: Record<string, string> }][];
+const Tag = wrapForm ? 'form' : 'div';
+---
+<Tag class:list={['searchbar', { 'searchbar-compact': compact }]} {...(wrapForm ? { action: '/search/', method: 'get', role: 'search' } : {})}>
+  <div class="field">
+    <label for={`${idPrefix}-location`}>Location</label>
+    <input id={`${idPrefix}-location`} type="text" name="location" placeholder={site.locationPlaceholder} autocomplete="address-level2" maxlength="80" enterkeyhint="search" />
+  </div>
+  <div class="field">
+    <label for={`${idPrefix}-need`}>{site.needLabel}</label>
+    <select id={`${idPrefix}-need`} name="need">
+      <option value="">Any service or credential</option>
+      {groups.map(([attr, def]) => (
+        <optgroup label={def.label}>{Object.entries(def.options).map(([k, label]) => <option value={`${attr}:${k}`}>{label}</option>)}</optgroup>
+      ))}
+    </select>
+  </div>
+  <button class="btn btn-primary btn-lg" type="submit"><Icon name="search" />Search</button>
+</Tag>

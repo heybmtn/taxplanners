@@ -1,0 +1,9 @@
+---
+import ResultPage from '../../components/ResultPage.astro';
+import site from '../../../site.config.ts';
+---
+<ResultPage title="Please check your details" heading="We couldn't accept that submission yet" path="/add-your-business/check/" kind="info">
+  <p>Some required details were missing or invalid, the form was sent too quickly, or it was open for more than a day. Please go back, check the business name, city, {site.regionWord}, your name and email, and tick the confirmation box.</p>
+  <div class="btn-row"><a class="btn btn-primary" href="/add-your-business/">Open the form again</a></div>
+  <p class="small muted">Still stuck? Email the details to <a href={`mailto:${site.submissionsEmail}`}>{site.submissionsEmail}</a>.</p>
+</ResultPage>

@@ -18,10 +18,10 @@ Closed permanently: set `status: "closed"` (page stays, marked closed, dropped f
 4. Keep `tier: "basic"` even if the email says "Tier requested: Verified", until the site owner confirms payment and ownership.
 
 ## Upgrading to Verified (only when the site owner confirms payment AND ownership)
-Set `"tier": "verified"`, `"verifiedUntil"` to one year from today (unless told otherwise), add the owner's `description` (max ~150 words) and `bookingUrl` if given, set `lastUpdated` to today.
+Set `"tier": "verified"`, `"verifiedUntil"` to one year from today (unless told otherwise), add the owner's `description` (max ~150 words) and `bookingUrl` if given, set `lastUpdated` to today. Record only what the site owner says actually happened: `"verification": { "businessConfirmed": "YYYY-MM-DD", "credentialsChecked": "YYYY-MM-DD", "credentialSource": "IRS preparer directory" }` (omit any part not done; never guess dates).
 
 ## Downgrading
-Set `"tier": "basic"` and remove `verifiedUntil`, `description` and `bookingUrl`. (An expired `verifiedUntil` already renders as Basic after the daily rebuild.)
+Set `"tier": "basic"` and remove `verifiedUntil`, `verification`, `description` and `bookingUrl`. (An expired `verifiedUntil` already renders as Basic after the daily rebuild.)
 
 ## Check and publish
 ```sh

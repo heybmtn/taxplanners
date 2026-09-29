@@ -1,11 +1,11 @@
 // Markdown twins ({url}index.md), llms.txt and llms-full.txt.
 import site from '../../site.config.ts';
 import { loadData, nearby, hubUrl, type City, type Entry, type Region } from './data.ts';
-import { cityPage, hubPage, listingPage, regionPage, taxonomies, termPage } from './pages.ts';
+import { cityPage, facetPage, hubPage, listingPage, regionPage, taxonomies, termPage } from './pages.ts';
 import { abs } from './seo.ts';
 import { addressLine, bestFor, factRows, formatDate, hasHours, hoursRows, listingFaqs, mapsUrl, plural } from './format.ts';
 import { copy, formUrl, plansUrl, payLabel, paymentLink, tierName } from './copy.ts';
-import { plans } from './plans.ts';
+import { plans, howItWorks, comparison } from './plans.ts';
 
 const esc = (s: string) => s.replace(/\|/g, '\\|');
 const head = (title: string, path: string, desc?: string) => `# ${title}\n\nCanonical: ${abs(path)}\n${desc ? `\n${desc}\n` : ''}`;
@@ -23,6 +23,8 @@ export function listingMd(l: Entry, c: City, r: Region, near: Entry[]) {
   const v = l.tierNow === 'verified';
   let md = head(l.name, p.path, l.summary);
   md += `\nTier: ${tierName[l.tierNow]}${v ? ` (${copy.verifiedNote}, until ${formatDate(l.verifiedUntil!)})` : ''}\n`;
+  if (v && l.verification?.businessConfirmed) md += `\nBusiness details confirmed by the owner: ${l.verification.businessConfirmed}\n`;
+  if (v && l.verification?.credentialsChecked) md += `\nCredentials checked: ${l.verification.credentialsChecked}${l.verification.credentialSource ? ` (${l.verification.credentialSource})` : ''}\n`;
   if (l.status === 'closed') md += '\nStatus: permanently closed\n';
   if (v && l.description) md += `\n${l.description}\n`;
   if (v && l.bookingUrl) md += `\nBooking: ${l.bookingUrl}\n`;
@@ -60,7 +62,13 @@ export async function allTwins(): Promise<{ path: string; body: string }[]> {
   out.push({ path: hubUrl, body: `${head(hp.h1, hp.path, hp.description)}\n${regions.map((r) => `- ${link(r.name, r.url)} (${r.listings.length})`).join('\n')}\n` });
   for (const r of regions) {
     out.push({ path: r.url, body: regionMd(r) });
-    for (const c of r.cities) out.push({ path: c.url, body: cityMd(c, r) });
+    for (const c of r.cities) {
+      out.push({ path: c.url, body: cityMd(c, r) });
+      for (const f of c.facets) {
+        const p = facetPage(f, c, r);
+        out.push({ path: f.url, body: `${head(p.h1, p.path, p.intro)}\n${disclosure}\n\n${table(f.listings)}` });
+      }
+    }
   }
   for (const l of all) {
     const r = regions.find((x) => x.slug === l.region);
@@ -78,6 +86,9 @@ export async function allTwins(): Promise<{ path: string; body: string }[]> {
   out.push({ path: plansUrl, body: plansMd() });
   out.push({ path: '/about/', body: aboutMd() });
   out.push({ path: '/privacy/', body: `${head('Privacy', '/privacy/')}\nNo cookies, analytics or advertising scripts. Form submissions are emailed to us and not stored; submitter contact details are never published. The form uses Cloudflare Turnstile. Contact: ${site.submissionsEmail}\n` });
+  out.push({ path: '/verification/', body: `${head('How verification works', '/verification/', site.verifiedMeaning)}\n${site.verifiedNotEndorsement}\n\n## The process\n\n${howItWorks.map((s, i) => `${i + 1}. **${s.title}.** ${s.text}`).join('\n')}\n\n${copy.basicDefinition}\n` });
+  out.push({ path: '/contact/', body: `${head('Contact', '/contact/')}\nAdd or correct a listing: ${abs(formUrl)}. Everything else: ${site.submissionsEmail}.\n` });
+  out.push({ path: '/terms/', body: `${head('Terms of use', '/terms/')}\nInformation, not advice: nothing on ${site.name} is tax, legal or financial advice or a recommendation. ${site.verifiedNotEndorsement} ${site.independence}\n` });
   out.push({ path: formUrl, body: `${head('Add or update a listing', formUrl)}\nSend a new listing or a correction with the form at ${abs(formUrl)}. Add ?listing={slug} to update an existing listing, or ?tier=verified to request Verified. Plans: ${abs(plansUrl)}\n` });
   return out;
 }
@@ -92,6 +103,7 @@ function homeMd(regions: Region[]) {
 
 function plansMd() {
   let md = head(plans.h1, plansUrl, plans.intro);
+  md += `\n## Compare\n\n| Feature | Basic | Verified |\n|---|---|---|\n${comparison.map((r) => `| ${r.feature} | ${r.basic ? 'Yes' : 'No'} | ${r.verified ? 'Yes' : 'No'} |`).join('\n')}\n`;
   md += `\n## Basic: Free\n\n${plans.basic.map((b) => `- ${b}`).join('\n')}\n\n## Verified: ${site.verifiedPrice}\n\n${plans.verified.map((b) => `- ${b}`).join('\n')}\n`;
   md += `\n## How to get a Verified listing\n\n${plans.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\n- ${plans.sendLabel}: ${abs(plans.sendUrl)}\n- ${payLabel}: ${paymentLink()}\n`;
   return md + faqMd(plans.faqs);
@@ -107,7 +119,9 @@ export async function llmsTxt() {
 
 > ${site.description}
 
-${site.operator}
+${site.operator} ${site.independence}
+
+${site.verifiedMeaning} ${site.verifiedNotEndorsement}
 
 ## Data and sourcing
 - Listings come from public sources (business websites, public registers) or owner/public submissions. Each listing has a lastUpdated date and a source. No ratings, reviews or referral fees.
@@ -126,7 +140,11 @@ ${regions.flatMap((r) => r.cities.map((c) => `- [${c.name}, ${r.abbr} (JSON)](${
 - [Field reference](${abs('/data/README.md')})
 - [Every listing in one file](${abs('/llms-full.txt')})
 
+## Search
+- Search results page (HTML): ${abs('/search/')}?location={city-state-or-zip}&credentials={key}&services={key}&clients={key}&meeting={virtual|inPerson}&languages={name}&verified=1 (parameters are optional; option keys are in /data/README.md)
+
 ## Pages
+- [How verification works](${abs('/verification/index.md')})
 - [Listing plans](${abs(`${plansUrl}index.md`)})
 - [About and sources](${abs('/about/index.md')})
 - [Add or update a listing](${abs(formUrl)})

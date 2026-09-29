@@ -1,4 +1,7 @@
-// "Add your business" submission handler. Pure: I/O (Turnstile, email) is injected so it can be unit-tested.
+// "Add your business" submission handler. Pure: I/O (Turnstile, rate limit, duplicate check, email) is injected
+// so it can be unit-tested. Spam protection always runs server-side: a honeypot field, a signed time token
+// (rejects instant posts and stale ones), a per-IP rate limit, a link-stuffing check, a duplicate check,
+// and Cloudflare Turnstile whenever its secret is configured.
 import { z } from 'zod';
 import site from '../../site.config.ts';
 import { attributeDefs, weekdays } from '../lib/schema.ts';
@@ -7,11 +10,28 @@ export const paths = {
   form: '/add-your-business/',
   thanks: '/add-your-business/thanks/',
   thanksVerified: '/add-your-business/thanks-verified/',
+  /** Sending failed (server side). */
   error: '/add-your-business/error/',
+  /** Missing/invalid details or a failed spam check. */
+  check: '/add-your-business/check/',
+  /** The same submission was already received. */
+  received: '/add-your-business/received/',
 };
 
+/** A form token must be at least this old (bots post instantly) and at most this old. */
+export const TOKEN_MIN_MS = 3_000;
+export const TOKEN_MAX_MS = 24 * 3600_000;
+
 export interface Deps {
+  /** True when a Turnstile secret is configured; a valid Turnstile token is then required. */
+  turnstileRequired: boolean;
   verifyTurnstile(token: string, ip: string | null): Promise<boolean>;
+  /** Checks the signed time token the Worker put into the form. */
+  verifyFormToken(token: string): Promise<boolean>;
+  /** True when this IP has sent too many submissions recently. */
+  rateLimited?(ip: string | null): Promise<boolean>;
+  /** True when the same submission was received recently (records it otherwise). */
+  isDuplicate?(key: string): Promise<boolean>;
   sendEmail(msg: { subject: string; text: string; replyTo: string }): Promise<void>;
   today(): string;
 }
@@ -74,12 +94,20 @@ export async function handleSubmission(form: FormData, ip: string | null, deps: 
   // Honeypot: pretend success, send nothing.
   if (str('company_url').trim() !== '') return { location: paths.thanks, reason: 'honeypot' };
 
-  const token = str('cf-turnstile-response');
-  if (!token || !(await deps.verifyTurnstile(token, ip))) return { location: paths.error, reason: 'turnstile' };
+  if (deps.rateLimited && (await deps.rateLimited(ip))) return { location: paths.check, reason: 'rate' };
+  if (!(await deps.verifyFormToken(str('form_token')))) return { location: paths.check, reason: 'token' };
+  if (deps.turnstileRequired) {
+    const token = str('cf-turnstile-response');
+    if (!token || !(await deps.verifyTurnstile(token, ip))) return { location: paths.check, reason: 'turnstile' };
+  }
 
   const parsed = baseSchema.safeParse(Object.fromEntries(Object.keys(baseSchema.shape).map((k) => [k, str(k)])));
-  if (!parsed.success) return { location: paths.error, reason: 'invalid' };
+  if (!parsed.success) return { location: paths.check, reason: 'invalid' };
   const d = parsed.data;
+
+  // Link stuffing: real submissions have no links in the name and very few in the description.
+  const links = (s: string | null) => (s?.match(/https?:\/\/|www\./gi) ?? []).length;
+  if (links(d.name) > 0 || links(d.description) > 2) return { location: paths.check, reason: 'links' };
 
   // Only owners and staff can request Verified.
   const tierRequested = d.relationship === 'customer' ? 'basic' : d.tier;
@@ -166,12 +194,39 @@ export async function handleSubmission(form: FormData, ip: string | null, deps: 
   ].join('\n');
 
   const email = { subject, text, replyTo: clean(d.submitterEmail) };
+  const dupKey = [d.name, d.locality, d.submitterEmail, listing.slug].map((x) => x.toLowerCase().replace(/\s+/g, ' ')).join('|');
+  if (deps.isDuplicate && (await deps.isDuplicate(dupKey))) return { location: paths.received, reason: 'duplicate' };
   try {
     await deps.sendEmail(email);
   } catch {
     return { location: paths.error, reason: 'send', email };
   }
   return { location: tierRequested === 'verified' ? `${paths.thanksVerified}?ref=${encodeURIComponent(d.name)}` : paths.thanks, email };
+}
+
+const toHex = (buf: ArrayBuffer) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+
+async function hmac(key: string, data: string): Promise<string> {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return toHex(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(data)));
+}
+
+/** "{timestamp}.{signature}", put into the form by the Worker each time it serves the page. */
+export async function makeFormToken(key: string, now = Date.now()): Promise<string> {
+  return `${now}.${await hmac(key, String(now))}`;
+}
+
+/** Valid when correctly signed and between TOKEN_MIN_MS and TOKEN_MAX_MS old. */
+export async function checkFormToken(key: string, token: string, now = Date.now()): Promise<boolean> {
+  const [ts, sig] = token.split('.');
+  const t = Number(ts);
+  if (!ts || !Number.isFinite(t) || !sig || sig.length !== 64) return false;
+  const age = now - t;
+  if (age < TOKEN_MIN_MS || age > TOKEN_MAX_MS) return false;
+  const expected = await hmac(key, ts);
+  let diff = 0;
+  for (let i = 0; i < 64; i++) diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
+  return diff === 0;
 }
 
 /** Raw RFC 5322 message for the send_email binding. */

@@ -2,7 +2,7 @@
 // Region pages (/{hub}/{region}/) and taxonomy term pages (/{segment}/{term}/).
 import Base from '../../../layouts/Base.astro';
 import ListingList from '../../../components/ListingList.astro';
-import BestFor from '../../../components/BestFor.astro';
+import LocationResults from '../../../components/LocationResults.astro';
 import site from '../../../../site.config.ts';
 import { loadData, type City, type Region, type Term } from '../../../lib/data.ts';
 import { regionPage, termPage } from '../../../lib/pages.ts';
@@ -24,16 +24,22 @@ const { region, term } = Astro.props as { region?: Region; term?: Term };
 ---
 {region && (() => {
   const page = regionPage(region);
+  const sp = new URLSearchParams({ state: region.slug }).toString();
   return (
     <Base title={page.title} description={page.description} path={page.path} noindex={page.noindex} crumbs={page.crumbs} jsonld={[itemListLd(page.h1, region.listings)]}>
-      <h1>{page.h1}</h1>
-      <p>{region.intro ?? `${region.listings.length} ${plural(region.listings.length)} listed in ${region.cities.length} ${region.cities.length === 1 ? 'city' : 'cities'} in ${region.name}.`}</p>
-      <h2>Cities</h2>
-      <ul class="grid-links">
-        {region.cities.map((c: City) => <li><a href={c.url}>{c.name} <span>{c.listings.length}</span></a></li>)}
-      </ul>
-      <ListingList listings={region.listings} showCity heading={`All ${site.entity.plural} in ${region.name}`} />
-      <BestFor listings={region.listings} place={region.name} />
+      <div class="wrap">
+        <div class="page-head">
+          <h1>{page.h1}</h1>
+          <p class="lead">{region.intro ?? `${region.listings.length} ${plural(region.listings.length)} listed in ${region.cities.length} ${region.cities.length === 1 ? 'city' : 'cities'} in ${region.name}.`}</p>
+        </div>
+        <section class="section" style="padding-top:0" aria-labelledby="cities-title">
+          <h2 id="cities-title">Cities in {region.name}</h2>
+          <ul class="state-grid">
+            {region.cities.map((c: City) => <li><a class="state-link" href={c.url}>{c.name} <span class="count">{c.listings.length}</span></a></li>)}
+          </ul>
+        </section>
+        <LocationResults listings={region.listings} place={region.name} searchParams={sp} heading={`All ${site.entity.plural} in ${region.name}`} />
+      </div>
     </Base>
   );
 })()}
@@ -41,9 +47,14 @@ const { region, term } = Astro.props as { region?: Region; term?: Term };
   const page = termPage(term);
   return (
     <Base title={page.title} description={page.description} path={page.path} noindex={page.noindex} crumbs={page.crumbs} jsonld={[itemListLd(page.h1, term.listings)]}>
-      <h1>{page.h1}</h1>
-      <p>{page.intro}</p>
-      <ListingList listings={term.listings} showCity heading={`${term.listings.length} listed`} />
+      <div class="wrap">
+        <div class="page-head">
+          <h1>{page.h1}</h1>
+          <p class="lead">{page.intro}</p>
+        </div>
+        <ListingList listings={term.listings} heading={`${term.listings.length} listed`} />
+        <p><a href={`/search/?${term.attr}=${term.key}`}>Filter these by location and service</a></p>
+      </div>
     </Base>
   );
 })()}

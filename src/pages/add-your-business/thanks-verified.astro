@@ -1,12 +1,15 @@
 ---
-import Base from '../../layouts/Base.astro';
+import ResultPage from '../../components/ResultPage.astro';
 import site from '../../../site.config.ts';
 import { payLabel, paymentLink, isMailto, payEmail } from '../../lib/copy.ts';
-// The Worker rewrites the pay link to include the business name when the provider supports a reference.
+// The Worker adds the business name to the payment link when the provider supports a reference.
 ---
-<Base title={`Thanks: next, pay for Verified | ${site.name}`} description="Your Verified request was sent." path="/add-your-business/thanks-verified/" noindex twin={false}>
-  <h1>Thanks, we have your Verified request</h1>
-  <p>Your listing will be added or updated as Basic first. To get the Verified label, pay <strong>{site.verifiedPrice}</strong>{isMailto && <> (email {payEmail} and we'll send an invoice)</>}.</p>
-  <p><a id="pay" class="btn btn-primary" href={paymentLink()}>{payLabel}</a></p>
-  <p>Before the Verified label appears, we will contact you to confirm you own or work for the business and {site.credentialCheck}. If the check fails we refund you and the listing stays Basic.</p>
-</Base>
+<ResultPage title="Verified request received" heading="Thanks — your Verified request has been submitted." path="/add-your-business/thanks-verified/" kind="success">
+  <p>We'll add or update your listing as Basic first. The Verified badge appears only after these steps:</p>
+  <ol>
+    <li>Payment of <strong>{site.verifiedPrice}</strong>{isMailto && <> — email {payEmail} and we'll send an invoice</>}.</li>
+    <li>We contact you to confirm you own or work for the business.</li>
+    <li>We check the {site.credentialName} with {site.credentialSource}. If the check fails, we refund you and the listing stays Basic.</li>
+  </ol>
+  <div class="btn-row"><a id="pay" class="btn btn-primary" href={paymentLink()}>{payLabel}</a><a class="btn btn-secondary" href="/verification/">How verification works</a></div>
+</ResultPage>

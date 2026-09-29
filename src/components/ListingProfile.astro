@@ -1,0 +1,107 @@
+---
+// Profile page for one listing.
+import Base from '../layouts/Base.astro';
+import Faqs from './Faqs.astro';
+import VerifiedBadge from './VerifiedBadge.astro';
+import CredentialBadges from './CredentialBadges.astro';
+import VerificationPanel from './VerificationPanel.astro';
+import Icon from './Icon.astro';
+import site from '../../site.config.ts';
+import type { City, Entry, Region } from '../lib/data.ts';
+import { listingPage } from '../lib/pages.ts';
+import { listingLd, faqLd } from '../lib/seo.ts';
+import { addressLine, attrText, hasHours, hoursRows, listingFaqs, mapsUrl, meetingText, optionLabels, shortUrl } from '../lib/format.ts';
+import { attributeDefs } from '../lib/schema.ts';
+
+interface Props { l: Entry; region: Region; city: City; near: Entry[] }
+const { l, region, city, near } = Astro.props;
+const page = listingPage(l, city, region);
+const verified = l.tierNow === 'verified';
+const faqs = listingFaqs(l);
+const meeting = meetingText(l);
+const languages = attrText(l, 'languages');
+const extras = Object.entries(attributeDefs).filter(([k, d]) => d.type === 'bool' && !(k in site.meetingFormats) && l.attributes[k] === true).map(([, d]) => d.label);
+const sections = [
+  { id: 'credentials', title: 'Credentials', items: optionLabels(l, 'credentials') },
+  { id: 'services', title: 'Services', items: optionLabels(l, 'services') },
+  { id: 'clients', title: 'Who they work with', items: optionLabels(l, 'clients') },
+];
+const tel = l.phone ? `tel:${l.phone.replace(/[^\d+]/g, '')}` : null;
+---
+<Base title={page.title} description={page.description} path={page.path} noindex={page.noindex} crumbs={page.crumbs} jsonld={[listingLd(l, verified), faqLd(faqs)]}>
+  <section class="profile-head" aria-labelledby="profile-name">
+    <div class="wrap">
+      {l.status === 'closed' && <p class="alert alert-error" role="note" style="margin-bottom:1rem"><strong>Permanently closed.</strong>&nbsp;Kept for reference.</p>}
+      <div class="profile-title">
+        <h1 id="profile-name">{l.name}</h1>
+        {verified && <VerifiedBadge />}
+      </div>
+      <p class="where muted" style="display:flex;gap:0.35rem;align-items:center;margin:0 0 0.75rem"><Icon name="pin" />{l.address.locality}, {l.address.region}</p>
+      <CredentialBadges l={l} />
+      <p class="lead" style="margin:1rem 0 0">{l.summary}</p>
+      {verified && l.description && <p style="margin-top:0.75rem">{l.description}</p>}
+      <div class="btn-row" style="margin-top:1.25rem">
+        {verified && l.bookingUrl && <a class="btn btn-primary" href={l.bookingUrl} rel="noopener nofollow"><Icon name="calendar" />Book an appointment</a>}
+        {l.website && <a class:list={['btn', verified && l.bookingUrl ? 'btn-secondary' : 'btn-primary']} href={l.website} rel="noopener nofollow"><Icon name="globe" />Visit website</a>}
+        {tel && <a class="btn btn-secondary" href={tel}><Icon name="phone" />Call {l.phone}</a>}
+        <a class="btn btn-ghost" href={mapsUrl(l)}><Icon name="map" />Open in Google Maps</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap profile-layout">
+    <div>
+      {sections.map((s) => (
+        <section class="panel" aria-labelledby={`sec-${s.id}`}>
+          <h2 id={`sec-${s.id}`}>{s.title}</h2>
+          {s.items.length ? <ul class="tags" style="margin-bottom:1rem">{s.items.map((x) => <li><span class="tag">{x}</span></li>)}</ul> : <p class="not-listed">Not listed yet.</p>}
+        </section>
+      ))}
+      <div class="grid grid-2" style="gap:0 1rem">
+        <section class="panel" aria-labelledby="sec-meeting">
+          <h2 id="sec-meeting">Meeting options</h2>
+          <p class={meeting ? '' : 'not-listed'}>{meeting ?? 'Not listed yet.'}</p>
+        </section>
+        <section class="panel" aria-labelledby="sec-languages">
+          <h2 id="sec-languages">Languages</h2>
+          <p class={languages ? '' : 'not-listed'}>{languages ?? 'Not listed yet.'}</p>
+        </section>
+      </div>
+      {extras.length > 0 && (
+        <section class="panel" aria-labelledby="sec-extras">
+          <h2 id="sec-extras">Also listed</h2>
+          <ul class="tags" style="margin-bottom:1rem">{extras.map((x) => <li><span class="tag">{x}</span></li>)}</ul>
+        </section>
+      )}
+      <section class="panel" aria-labelledby="sec-hours">
+        <h2 id="sec-hours">Hours</h2>
+        {hasHours(l) ? (
+          <table class="hours" style="margin-bottom:1rem"><tbody>{hoursRows(l).map((h) => <tr><th scope="row">{h.day}</th><td>{h.text}</td></tr>)}</tbody></table>
+        ) : <p class="not-listed">Hours not listed. Call or check the website before visiting.</p>}
+      </section>
+      <div class="panel"><Faqs faqs={faqs} heading={`About ${l.name}`} /></div>
+      {near.length > 0 && (
+        <section class="panel" aria-labelledby="nearby">
+          <h2 id="nearby">Nearby {site.entity.plural}</h2>
+          <ul class="contact-list">{near.map((n) => <li><a href={n.url}>{n.name}</a><span class="muted">· {n.address.locality}</span></li>)}</ul>
+          <p><a href={city.url}>All {site.entity.plural} in {city.name}</a></p>
+        </section>
+      )}
+    </div>
+
+    <aside class="profile-aside" aria-label="Contact and verification">
+      <section class="panel" aria-labelledby="contact-title">
+        <h2 id="contact-title">Contact</h2>
+        <ul class="contact-list">
+          <li><Icon name="pin" /><span>{addressLine(l)}</span></li>
+          {tel && <li><Icon name="phone" /><a href={tel}>{l.phone}</a></li>}
+          {l.website && <li><Icon name="globe" /><a href={l.website} rel="noopener nofollow">{shortUrl(l.website)}</a></li>}
+          {verified && l.bookingUrl && <li><Icon name="calendar" /><a href={l.bookingUrl} rel="noopener nofollow">Book an appointment</a></li>}
+          {l.sameAs.map((s) => <li><Icon name="link" /><a href={s} rel="noopener nofollow">{shortUrl(s)}</a></li>)}
+          {!tel && !l.website && <li><Icon name="info" /><span class="not-listed">No phone or website listed yet.</span></li>}
+        </ul>
+      </section>
+      <VerificationPanel l={l} />
+    </aside>
+  </div>
+</Base>

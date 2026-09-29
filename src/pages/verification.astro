@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+import TrustNote from '../components/TrustNote.astro';
+import Faqs from '../components/Faqs.astro';
+import site from '../../site.config.ts';
+import { howItWorks, plans } from '../lib/plans.ts';
+import { copy, formUrl, plansUrl } from '../lib/copy.ts';
+import { faqLd } from '../lib/seo.ts';
+const faqs = [
+  { q: 'What does Verified mean?', a: `${site.verifiedMeaning} ${site.verifiedNotEndorsement}` },
+  { q: 'What does a Basic listing mean?', a: copy.basicDefinition },
+  { q: 'Can I check a credential myself?', a: site.homeFaqs.find((f) => /credential/i.test(f.q))?.a ?? '' },
+  ...plans.faqs.slice(1, 3),
+].filter((f) => f.a);
+---
+<Base title={`How verification works | ${site.name}`} description={`What the Verified badge on ${site.name} means, what we check, and what it does not mean.`} path="/verification/" crumbs={[{ name: 'Home', url: '/' }, { name: 'How verification works', url: '/verification/' }]} jsonld={[faqLd(faqs)]}>
+  <div class="wrap">
+    <div class="page-head prose">
+      <span class="eyebrow">Verification</span>
+      <h1>How verification works</h1>
+      <p class="lead">{site.verifiedMeaning}</p>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:2rem">
+      <section class="panel panel-verified" aria-labelledby="v-means">
+        <h2 id="v-means">What a Verified listing tells you</h2>
+        <ul class="check-list">
+          <li><span aria-hidden="true">✓</span><span>The owner confirmed they run the business and that the details are right.</span></li>
+          <li><span aria-hidden="true">✓</span><span>{site.credentialCheck[0].toUpperCase() + site.credentialCheck.slice(1)}.</span></li>
+          <li><span aria-hidden="true">✓</span><span>The badge shows only until the renewal date, and we recheck at renewal.</span></li>
+        </ul>
+      </section>
+      <section class="panel" aria-labelledby="v-not">
+        <h2 id="v-not">What it does not mean</h2>
+        <ul class="check-list">
+          <li class="no"><span aria-hidden="true">—</span><span>{site.verifiedNotEndorsement}</span></li>
+          <li class="no"><span aria-hidden="true">—</span><span>It is not a rating or review. We publish neither.</span></li>
+          <li class="no"><span aria-hidden="true">—</span><span>Verified listings are paid ({site.verifiedPrice}). Paying buys the check, the label and a place above Basic listings, never changed facts.</span></li>
+        </ul>
+      </section>
+    </div>
+    <h2>The process</h2>
+    <ol class="steps">{howItWorks.map((s) => <li><h3>{s.title}</h3><p>{s.text}</p></li>)}</ol>
+    <div class="prose"><TrustNote /></div>
+    <div class="btn-row" style="margin-bottom:2rem">
+      <a class="btn btn-primary" href={`${formUrl}?tier=verified`}>Get Verified</a>
+      <a class="btn btn-secondary" href={plansUrl}>Compare plans</a>
+    </div>
+    <div class="prose"><Faqs faqs={faqs} /></div>
+  </div>
+</Base>

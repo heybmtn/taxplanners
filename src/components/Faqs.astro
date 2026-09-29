@@ -1,10 +1,16 @@
 ---
-interface Props { faqs: { q: string; a: string }[]; heading?: string }
-const { faqs, heading = 'Questions' } = Astro.props;
+// Questions and answers as native disclosure widgets (keyboard accessible, no JavaScript).
+interface Props { faqs: readonly { q: string; a: string }[]; heading?: string; id?: string }
+const { faqs, heading = 'Questions', id = 'faqs' } = Astro.props;
 ---
 {faqs.length > 0 && (
-  <section aria-labelledby="faqs">
-    <h2 id="faqs">{heading}</h2>
-    {faqs.map((f) => (<><h3>{f.q}</h3><p>{f.a}</p></>))}
+  <section class="faq" aria-labelledby={id}>
+    <h2 id={id}>{heading}</h2>
+    {faqs.map((f, i) => (
+      <details open={i === 0}>
+        <summary><h3>{f.q}</h3></summary>
+        <p>{f.a}</p>
+      </details>
+    ))}
   </section>
 )}

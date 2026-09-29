@@ -14,6 +14,10 @@ export type AttributeDef =
       bestFor?: Record<string, string>;
       /** FAQ on listing pages. */
       question?: (name: string) => string;
+      /** City-level landing pages (/{hub}/{region}/{city}/{option}/) when 3+ listings match. */
+      cityFacet?: (label: string, where: string) => string;
+      /** Short label for cards, e.g. "EA" instead of "Enrolled agent (EA)". */
+      short?: Record<string, string>;
     }
   | {
       type: 'bool';
@@ -55,6 +59,34 @@ export const site = {
   turnstileSiteKey: '',
   operator: 'TaxPlanners.com is run by an independent publisher. It is not affiliated with the IRS, any state board of accountancy or any firm listed.',
 
+  // Home page and search
+  headline: 'Find a tax professional you can verify',
+  heroCopy: 'Compare credentials, services, specialties and verification status from tax professionals near you.',
+  locationPlaceholder: 'City, state or ZIP',
+  needLabel: 'Service or credential',
+  trustSignals: ['Credentials checked for Verified listings', 'Independent directory', 'Free Basic listings', 'No paid reviews or ratings'],
+  popularSearches: [
+    { label: 'CPAs', attr: 'credentials', key: 'cpa' },
+    { label: 'Enrolled agents', attr: 'credentials', key: 'enrolled-agent' },
+    { label: 'Tax attorneys', attr: 'credentials', key: 'tax-attorney' },
+    { label: 'Tax planning', attr: 'services', key: 'tax-planning' },
+    { label: 'Small business', attr: 'clients', key: 'small-business' },
+    { label: 'Real estate investors', attr: 'clients', key: 'real-estate-investors' },
+    { label: 'IRS representation', attr: 'services', key: 'irs-representation' },
+    { label: 'Freelancers', attr: 'clients', key: 'self-employed' },
+    { label: 'Tax preparation', attr: 'services', key: 'tax-preparation' },
+  ],
+  /** Attributes shown as "Meeting format" (bool attribute key → label). */
+  meetingFormats: { virtual: 'Virtual', inPerson: 'In-person' },
+  professional: 'tax professional',
+
+  // Trust wording, used on About, the footer, the Verified popover and llms.txt
+  independence:
+    'TaxPlanners.com is not affiliated with the IRS, state boards of accountancy, or any listed professional or firm.',
+  verifiedMeaning:
+    'Verified means the business owner has confirmed the business information and the stated professional credentials have been checked against the relevant public source where applicable.',
+  verifiedNotEndorsement: 'Verified does not mean TaxPlanners.com recommends, endorses, or guarantees the professional.',
+
   // Entity wording
   entity: { singular: 'tax planner', plural: 'tax planners', article: 'a' },
   hub: 'tax-planners',
@@ -83,6 +115,8 @@ export const site = {
         intro: (t: string) => `Tax planners listing the ${t} credential. Check any credential yourself in the IRS Directory of Federal Tax Return Preparers.`,
       },
       question: (n: string) => `What credentials does ${n} list?`,
+      cityFacet: (label: string, where: string) => `${label} tax planners in ${where}`,
+      short: { 'enrolled-agent': 'Enrolled agent', afsp: 'IRS AFSP' },
     },
     services: {
       type: 'multi',
@@ -98,6 +132,7 @@ export const site = {
       },
       bestFor: { 'irs-representation': 'IRS representation', 'business-tax': 'Business tax' },
       question: (n: string) => `What services does ${n} offer?`,
+      cityFacet: (label: string, where: string) => `${label} in ${where}`,
     },
     clients: {
       type: 'multi',
@@ -111,6 +146,8 @@ export const site = {
         expats: 'Expats and multi-state filers',
       },
       bestFor: { 'self-employed': 'Self-employed', 'real-estate-investors': 'Real estate investors', expats: 'Expats and multi-state' },
+      cityFacet: (label: string, where: string) => `Tax planners in ${where} for ${label.toLowerCase()}`,
+      short: { individuals: 'Individuals', 'self-employed': 'Freelancers', 'high-income': 'High income', expats: 'Expats' },
     },
     virtual: { type: 'bool', label: 'Virtual meetings', card: true, cardText: 'Virtual meetings', bestFor: 'Virtual meetings', question: (n: string) => `Does ${n} offer virtual meetings?` },
     inPerson: { type: 'bool', label: 'In-person meetings' },

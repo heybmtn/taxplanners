@@ -1,31 +1,55 @@
 ---
 import Base from '../layouts/Base.astro';
+import PlanComparison from '../components/PlanComparison.astro';
+import Faqs from '../components/Faqs.astro';
 import site from '../../site.config.ts';
-import { plans } from '../lib/plans.ts';
+import { plans, howItWorks } from '../lib/plans.ts';
 import { faqLd } from '../lib/seo.ts';
-import { payLabel, paymentLink } from '../lib/copy.ts';
+import { payLabel, paymentLink, isMailto, payEmail, formUrl } from '../lib/copy.ts';
+const [amount, per] = site.verifiedPrice.split('/');
 ---
-<Base title={`Listing plans: Basic or Verified | ${site.name}`} description={`Free Basic listings for every ${site.entity.singular}, or Verified for ${site.verifiedPrice}: credential check, owner confirmation, the Verified label and a place above Basic.`} path="/listing-plans/" crumbs={[{ name: 'Home', url: '/' }, { name: 'Listing plans', url: '/listing-plans/' }]} jsonld={[faqLd(plans.faqs)]}>
-  <h1>{plans.h1}</h1>
-  <p class="muted">{plans.intro}</p>
-  <div class="plans">
-    <section class="plan" aria-labelledby="plan-basic">
-      <h2 id="plan-basic">Basic</h2>
-      <p class="price">Free</p>
-      <ul>{plans.basic.map((b) => <li>{b}</li>)}</ul>
+<Base title={`Pricing: Basic (free) or Verified (${site.verifiedPrice}) | ${site.name}`} description={`Free Basic listings for every ${site.entity.singular}, or Verified for ${site.verifiedPrice}: owner confirmation, credential check, the Verified badge and a place above Basic listings.`} path="/listing-plans/" crumbs={[{ name: 'Home', url: '/' }, { name: 'Pricing', url: '/listing-plans/' }]} jsonld={[faqLd(plans.faqs)]}>
+  <div class="wrap">
+    <div class="page-head">
+      <span class="eyebrow">Pricing</span>
+      <h1>{plans.h1}</h1>
+      <p class="lead" style="max-width:62ch">{plans.intro}</p>
+    </div>
+    <div class="plans">
+      <section class="plan" aria-labelledby="plan-basic">
+        <h2 id="plan-basic">Basic</h2>
+        <p class="price">Free</p>
+        <ul>{plans.basic.map((b) => <li>{b}</li>)}</ul>
+        <a class="btn btn-secondary" href={formUrl}>Add a free listing</a>
+      </section>
+      <section class="plan is-verified" aria-labelledby="plan-verified">
+        <h2 id="plan-verified">Verified</h2>
+        <p class="price">{amount}{per && <small>/{per}</small>}</p>
+        <ul>{plans.verified.map((b) => <li>{b}</li>)}</ul>
+        <a class="btn btn-primary btn-lg" href={plans.sendUrl}>Get Verified</a>
+      </section>
+    </div>
+
+    <section class="section" style="padding-top:0" aria-labelledby="compare-h">
+      <h2 id="compare-h">Compare plans</h2>
+      <PlanComparison />
     </section>
-    <section class="plan is-verified" aria-labelledby="plan-verified">
-      <h2 id="plan-verified">Verified</h2>
-      <p class="price">{site.verifiedPrice}</p>
-      <ul>{plans.verified.map((b) => <li>{b}</li>)}</ul>
+
+    <section class="section" style="padding-top:0" aria-labelledby="how-h">
+      <h2 id="how-h">How to get a Verified listing</h2>
+      <ol class="steps">{howItWorks.map((s) => <li><h3>{s.title}</h3><p>{s.text}</p></li>)}</ol>
+      <div class="band" style="margin-top:1.5rem">
+        <div>
+          <h2 style="font-size:1.25rem">Ready to get Verified?</h2>
+          <p>Send your details and choose Verified. {isMailto ? <>To pay, email {payEmail} and we'll send an invoice.</> : 'Then pay with the payment link.'}</p>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn-primary btn-lg" href={plans.sendUrl}>Get Verified</a>
+          <a class="btn btn-secondary btn-lg" href={paymentLink()}>{payLabel}</a>
+        </div>
+      </div>
     </section>
+
+    <Faqs faqs={plans.faqs} heading="Questions" />
   </div>
-  <h2>How to get a Verified listing</h2>
-  <ol>{plans.steps.map((s) => <li>{s}</li>)}</ol>
-  <div class="buttons">
-    <a class="btn btn-primary" href={plans.sendUrl}>{plans.sendLabel}</a>
-    <a class="btn btn-secondary" href={paymentLink()}>{payLabel}</a>
-  </div>
-  <h2>Questions</h2>
-  {plans.faqs.map((f) => (<><h3>{f.q}</h3><p>{f.a}</p></>))}
 </Base>

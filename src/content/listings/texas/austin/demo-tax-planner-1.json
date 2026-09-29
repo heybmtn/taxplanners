@@ -77,5 +77,10 @@
     ]
   },
   "description": "Sample owner description for the demo Verified listing. Replace with the owner-supplied text.",
-  "bookingUrl": "https://example.com/book"
+  "bookingUrl": "https://example.com/book",
+  "verification": {
+    "businessConfirmed": "2026-09-15",
+    "credentialsChecked": "2026-09-15",
+    "credentialSource": "Demo data (not a real check)"
+  }
 }

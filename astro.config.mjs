@@ -22,4 +22,6 @@ export default defineConfig({
   compressHTML: true,
   integrations: [sitemap({ filter: indexable })],
   devToolbar: { enabled: false },
+  // Keep scripts as files: the CSP (public/_headers) allows scripts from 'self' only, never inline.
+  vite: { build: { assetsInlineLimit: 0 } },
 });

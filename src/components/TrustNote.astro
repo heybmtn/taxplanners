@@ -1,0 +1,12 @@
+---
+import site from '../../site.config.ts';
+import Icon from './Icon.astro';
+---
+<aside class="alert alert-info" aria-labelledby="trust-title" style="margin:1.5rem 0">
+  <Icon name="shield" class="alert-icon" />
+  <div>
+    <h2 id="trust-title" style="font-size:1.1rem;margin-bottom:0.35rem">An independent directory</h2>
+    <p style="margin-bottom:0.5rem">{site.independence}</p>
+    <p>Verification indicates that information has been confirmed or checked according to our stated verification process. It is not an endorsement or recommendation.</p>
+  </div>
+</aside>

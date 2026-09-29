@@ -1,49 +1,101 @@
 ---
 import Base from '../layouts/Base.astro';
 import Faqs from '../components/Faqs.astro';
+import SearchBar from '../components/SearchBar.astro';
+import ListingCard from '../components/ListingCard.astro';
+import EmptyState from '../components/EmptyState.astro';
+import Icon from '../components/Icon.astro';
 import site from '../../site.config.ts';
 import { loadData } from '../lib/data.ts';
-import { taxonomies } from '../lib/pages.ts';
 import { faqLd, homeLd } from '../lib/seo.ts';
 import { plural } from '../lib/format.ts';
 import { copy, plansUrl, formUrl } from '../lib/copy.ts';
+import { howItWorks } from '../lib/plans.ts';
 
-const { regions, terms, published } = await loadData();
-const taxes = taxonomies(terms);
+const { regions, published } = await loadData();
 const faqs = [...site.homeFaqs, { q: 'How are listings ordered here?', a: `${copy.ordering} ${copy.disclosure}` }];
 const n = published.length;
+const featured = published.slice(0, 6);
+const countFor = (attr: string, key: string) => published.filter((l) => (l.attributes[attr] as string[] | undefined)?.includes(key)).length;
 ---
-<Base title={`${site.name}: find ${site.entity.article} ${site.entity.singular} near you`} description={site.description} path="/" isHome jsonld={[...homeLd(), faqLd(faqs)]}>
-  <h1>Find {site.entity.article} {site.entity.singular} near you</h1>
-  <p class="muted">{site.tagline} {n > 0 && `${n} ${plural(n)} listed in ${regions.length} ${regions.length === 1 ? site.regionWord : `${site.regionWord}s`}.`}</p>
-
-  <h2>Browse by {site.regionWord}</h2>
-  {regions.length === 0 ? <p>No listings yet. <a href={formUrl}>Add the first {site.entity.singular}</a>.</p> : (
-    <ul class="grid-links">
-      {regions.map((r) => <li><a href={r.url}>{r.name} <span>{r.listings.length}</span></a></li>)}
-    </ul>
-  )}
-  {regions.flatMap((r) => r.cities).length > 0 && (
-    <>
-      <h2>Cities</h2>
-      <ul class="grid-links">
-        {regions.flatMap((r) => r.cities.map((c) => ({ c, r }))).map(({ c, r }) => <li><a href={c.url}>{c.name}, {r.abbr} <span>{c.listings.length}</span></a></li>)}
+<Base title={`${site.headline} | ${site.name}`} description={site.description} path="/" isHome jsonld={[...homeLd(), faqLd(faqs)]}>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <h1 id="hero-title">{site.headline}</h1>
+      <p class="lead">{site.heroCopy}</p>
+      <SearchBar idPrefix="hero" />
+      <ul class="trust" aria-label="Why use this directory">
+        {site.trustSignals.map((t) => <li><Icon name="check-circle" />{t}</li>)}
       </ul>
-    </>
-  )}
+    </div>
+  </section>
 
-  {taxes.map((t) => (
-    <>
-      <h2>{t.title}</h2>
-      <ul class="grid-links">{t.terms.map((term) => <li><a href={term.url}>{term.label} <span>{term.listings.length}</span></a></li>)}</ul>
-    </>
-  ))}
+  <div class="wrap">
+    <section class="section" id="popular" aria-labelledby="popular-title">
+      <div class="section-head"><div><h2 id="popular-title">Popular searches</h2></div></div>
+      <ul class="chips">
+        {site.popularSearches.map((p) => {
+          const c = countFor(p.attr, p.key);
+          return <li><a class="chip" href={`/search/?${p.attr}=${p.key}`}>{p.label}{c > 0 && <span class="count">{c}</span>}</a></li>;
+        })}
+      </ul>
+    </section>
 
-  <h2>How listings work</h2>
-  <p>{copy.basicDefinition}</p>
-  <p>{copy.verifiedDefinition}</p>
-  <p class="disclosure">{copy.disclosure} <a href={plansUrl}>{copy.disclosureLink}</a></p>
+    {n > 0 ? (
+      <>
+        <section class="section" aria-labelledby="listed-title">
+          <div class="section-head">
+            <div>
+              <h2 id="listed-title">{site.entity.plural[0].toUpperCase() + site.entity.plural.slice(1)} in the directory</h2>
+              <p>{n} {plural(n)} listed so far. {copy.disclosure} <a href={plansUrl}>{copy.disclosureLink}</a></p>
+            </div>
+            <a class="btn btn-secondary" href="/search/">See all {plural(n)}</a>
+          </div>
+          <ul class="results grid grid-2">{featured.map((l) => <ListingCard l={l} />)}</ul>
+        </section>
 
-  <Faqs faqs={faqs} />
-  <p class="muted small">Sources: {site.sources.map((s, i) => <>{i > 0 && ' · '}<a href={s.url}>{s.name}</a></>)}</p>
+        <section class="section" aria-labelledby="states-title">
+          <div class="section-head">
+            <div><h2 id="states-title">Browse by {site.regionWord}</h2><p>{regions.length} {regions.length === 1 ? site.regionWord : `${site.regionWord}s`} with listings so far.</p></div>
+          </div>
+          <ul class="state-grid">
+            {regions.map((r) => <li><a class="state-link" href={r.url}>{r.name} <span class="count">{r.listings.length}</span></a></li>)}
+          </ul>
+        </section>
+      </>
+    ) : (
+      <section class="section" aria-label="Directory status">
+        <EmptyState icon="building" title="We're building the directory" text={`We're currently adding ${site.professional}s. If you're a ${site.professional}, you can add your business for free.`} actions={[{ label: 'List your business', href: formUrl, primary: true }, { label: 'How verification works', href: '/verification/' }]} />
+      </section>
+    )}
+
+    <section class="section" aria-labelledby="how-title">
+      <div class="section-head">
+        <div><span class="eyebrow">Verification</span><h2 id="how-title">How verification works</h2><p>{site.verifiedNotEndorsement}</p></div>
+        <a class="btn btn-ghost" href="/verification/">Read the details</a>
+      </div>
+      <ol class="steps">
+        {howItWorks.map((s) => <li><h3>{s.title}</h3><p>{s.text}</p></li>)}
+      </ol>
+    </section>
+
+    <section class="section" aria-labelledby="pros-title">
+      <div class="band">
+        <div>
+          <span class="eyebrow">For {site.professional}s</span>
+          <h2 id="pros-title">List your practice for free</h2>
+          <p>Basic listings are free. Verified ({site.verifiedPrice}) adds an owner-confirmed, credential-checked label and a place above Basic listings.</p>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn-primary btn-lg" href={formUrl}>List your business</a>
+          <a class="btn btn-secondary btn-lg" href={plansUrl}>Compare plans</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <Faqs faqs={faqs} heading="Questions" />
+      <p class="muted small">Sources: {site.sources.map((s, i) => <>{i > 0 && ' · '}<a href={s.url}>{s.name}</a></>)}</p>
+    </section>
+  </div>
 </Base>
